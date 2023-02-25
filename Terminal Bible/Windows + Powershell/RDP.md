@@ -1,0 +1,1 @@
+xfreerdp /dynamic-resolution +clipboard /cert:ignore /v:TARGET_IP /u:Administrator /p:'TryH4ckM3!'

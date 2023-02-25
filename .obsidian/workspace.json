@@ -4,22 +4,81 @@
     "type": "split",
     "children": [
       {
-        "id": "fa5d4e9a2b07220b",
+        "id": "539ca4734485feef",
         "type": "tabs",
         "children": [
           {
-            "id": "655e2619680130f2",
+            "id": "7d5828838314792c",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "(THM) Jr Pen Tester/Protocols and Servers.md",
+                "file": "(THM) Jr Pen Tester/Linux Priv Esc.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "103fa624c2cc5f69",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.1.15"
+              }
+            }
+          },
+          {
+            "id": "27781b0277bafd9d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Terminal Bible/Local + Linux/find.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "9c8f6a0d1293be9a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Terminal Bible/Local + Linux/hydra.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "105bc42a0d658f51",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "scripts/LD_PRELOAD.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "380a9f74d479f880",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "_etc_shadow.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ]
+        ],
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -49,7 +108,7 @@
               "type": "search",
               "state": {
                 "query": "",
-                "matchingCase": false,
+                "matchingCase": true,
                 "explainSearch": false,
                 "collapseAll": false,
                 "extraContext": false,
@@ -69,7 +128,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 225.5
   },
   "right": {
     "id": "37bfb976ed5b23c0",
@@ -85,7 +144,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "(THM) Jr Pen Tester/Protocols and Servers.md",
+                "file": "Terminal Bible/Local + Linux/find.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +161,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "(THM) Jr Pen Tester/Protocols and Servers.md",
+                "file": "Terminal Bible/Local + Linux/find.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +184,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "(THM) Jr Pen Tester/Protocols and Servers.md"
+                "file": "Terminal Bible/Local + Linux/find.md"
               }
             }
           }
@@ -148,15 +207,15 @@
   },
   "active": "e3117f6a592ba37e",
   "lastOpenFiles": [
-    "(THM) Jr Pen Tester/XSS (Cross-site Scripting).md",
-    "(THM) Jr Pen Tester/Active Recon.md",
-    "(THM) Jr Pen Tester/Application Walking.md",
-    "(THM) Jr Pen Tester/Metasploit Exploitation.md",
-    "Boxes/THM Steel Mountain.md",
-    "Boxes/THM Net Sec Challenge.md",
-    "2023-02-17.md",
-    "GAPS.md",
-    "(THM) Jr Pen Tester/File Inclusion.md",
-    "(THM) Jr Pen Tester/Vulnerability Capstone.md"
+    "Terminal Bible/Local + Linux/find.md",
+    "less.md",
+    "(THM) Jr Pen Tester/Linux Priv Esc.md",
+    "Terminal Bible/Local + Linux/_etc_password.md",
+    "Terminal Bible/Local + Linux/hydra.md",
+    "awk.md",
+    "scripts/LD_PRELOAD.md",
+    "_etc_shadow.md",
+    "Methodology/Buffer Overflow/CPU Registers.md",
+    "Methodology/Buffer Overflow/Buffer Overflow.md"
   ]
 }
