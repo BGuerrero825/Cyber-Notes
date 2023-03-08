@@ -1,0 +1,1 @@
+[https://tldp.org/LDP/abs/html/devref1.html](https://tldp.org/LDP/abs/html/devref1.html) - info about /dev, like for bash shells 

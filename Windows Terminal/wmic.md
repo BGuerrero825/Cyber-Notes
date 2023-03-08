@@ -1,0 +1,1 @@
+ `wmic service get name,startname` - get all services and user level
