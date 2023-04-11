@@ -8,54 +8,79 @@
         "type": "tabs",
         "children": [
           {
-            "id": "104762e2f953fcef",
+            "id": "bfab565a819ec602",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Active Directory/Bloodhound.md",
+                "file": "Note Philosophy.md",
                 "mode": "source",
                 "source": false
               }
             }
           },
           {
-            "id": "36493cb40be474f5",
+            "id": "6b2955580883ff75",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Linux Terminal/ssh.md",
+                "file": "Linux Terminal/grep.md",
                 "mode": "source",
                 "source": false
               }
             }
           },
           {
-            "id": "a6db5b579f70304a",
+            "id": "462d669e2d89458c",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Linux Terminal/scp.md",
+                "file": "Linux Terminal/msfvenom.md",
                 "mode": "source",
                 "source": false
               }
             }
           },
           {
-            "id": "6b17242a1de6bd11",
+            "id": "5d8d173decfcd086",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Windows Terminal/certutil.md",
+                "file": "Windows Terminal/Invoke-WebRequest.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "8c6cc7d8558f3aa5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Boxes/THM HackPark.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "502c19407f0e4561",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Windows Terminal/icacls.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ]
+        ],
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -121,7 +146,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Active Directory/Bloodhound.md",
+                "file": "Boxes/THM HackPark.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -138,7 +163,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Active Directory/Bloodhound.md",
+                "file": "Boxes/THM HackPark.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -161,7 +186,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Active Directory/Bloodhound.md"
+                "file": "Boxes/THM HackPark.md"
               }
             }
           }
@@ -169,7 +194,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -181,35 +207,41 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "104762e2f953fcef",
+  "active": "8c6cc7d8558f3aa5",
   "lastOpenFiles": [
-    "Windows Terminal/certutil.md",
-    "Active Directory/Bloodhound.md",
-    "Linux Terminal/ssh.md",
-    "Linux Terminal/scp.md",
-    "Untitled 1.md",
-    "Windows Terminal/systeminfo.md",
-    "Pasted image 20230307134725.png",
-    "Windows Terminal/net.md",
-    "TryHackMe/Enumerating Active Directory.md",
-    "Linux Terminal/awk 1.md",
-    "Linux Terminal/less.md",
-    "Windows Terminal/runas.exe.md",
+    "Windows Terminal/icacls.md",
+    "Boxes/THM HackPark.md",
+    "Windows Terminal/Invoke-WebRequest.md",
+    "Note Philosophy.md",
+    "Linux Terminal/grep.md",
+    "Methodology/Priv Esc.md",
+    "Methodology/Payloads.md",
+    "Linux Terminal/msfvenom.md",
+    "Linux Terminal/hydra.md",
+    "responder.md",
     "Windows Terminal/RDP (xfreerdp).md",
-    "Windows Terminal/powershell.md",
-    "Active Directory/Active Directory.md",
-    "TryHackMe/Active Directory Basics.md",
-    "TryHackMe/AD Users and Groups.md",
-    "TryHackMe/Application Walking.md",
-    "TryHackMe/Authentication Bypass.md",
-    "TryHackMe/Active Recon.md",
-    "TryHackMe/Linux Priv Esc.md",
-    "TryHackMe/Metasploit Exploitation.md",
-    "TryHackMe/Metasploit Intro.md",
-    "TryHackMe/Breaching Active Directory.md",
-    "TryHackMe/Connect to VPN.md",
-    "Buffer Overflow/Buffer Overflow.md",
-    "Buffer Overflow/CPU Registers.md",
+    "Linux Terminal/nmap.md",
+    "Boxes/THM Net Sec Challenge.md",
+    "Boxes/THM Alfred.md",
+    "Linux Terminal/rdesktop.md",
+    "Linux Terminal/Meterpreter.md",
+    "Linux Terminal/Metasploit.md",
+    "Linux Terminal/ls.md",
+    "Linux Terminal/locate.md",
+    "Linux Terminal/kill.md",
+    "Linux Terminal/curl.md",
+    "Linux Terminal/env.md",
+    "Linux Terminal/ftp.md",
+    "Linux Terminal/_etc_password.md",
+    "Boxes/HTB Monteverde.md",
+    "TryHackMe/Content Discovery.md",
+    "_attachments/Pasted image 20230308163901.png",
+    "_attachments/Pasted image 20230308144844.png",
+    "_attachments/Pasted image 20230308161405.png",
+    "_attachments/Pasted image 20230308160425.png",
+    "_attachments/Pasted image 20230308151625.png",
+    "_attachments/Pasted image 20230308151207.png",
+    "Pasted image 20230307134725.png",
     "_attachments/Pasted image 20230306144622.png",
     "Protocols",
     "Active Directory",
@@ -221,8 +253,6 @@
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/ntlm_passwordspray.py",
     "_attachments",
-    "_attachments/Pasted image 20230303153311.png",
-    "_attachments/Pasted image 20230303153325.png",
     "Terminal Bible/Untitled",
     "Python",
     "Active Directory"

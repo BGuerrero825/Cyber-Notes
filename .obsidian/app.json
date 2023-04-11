@@ -3,8 +3,7 @@
   "showLineNumber": true,
   "spellcheck": true,
   "spellcheckLanguages": [
-    "es",
-    "en"
+    "en-US"
   ],
   "attachmentFolderPath": "Active Directory/resources",
   "pdfExportSettings": {

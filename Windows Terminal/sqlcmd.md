@@ -1,0 +1,1 @@
+command line interface for a SQL server, usually pre-installed with Azure

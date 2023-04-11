@@ -19,5 +19,5 @@ S3 Bucket - Amazon AWS (simple) storage service for files / web content, `http(s
 Automated:
 CLI tools for dir spamming
 ffuf - `ffuf -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt -u http://MACHINE_IP/FUZZ`
-dirb - `http://MACHINE_IP/ /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt`
+dirb - `dirb http://MACHINE_IP/ /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt`
 Gobuster - `gobuster dir --url http://MACHINE_IP/ -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt`
