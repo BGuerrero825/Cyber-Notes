@@ -4,16 +4,16 @@
     "type": "split",
     "children": [
       {
-        "id": "cbaee1f3efe343df",
+        "id": "d146b114037d0e4f",
         "type": "tabs",
         "children": [
           {
-            "id": "042647909a0cca20",
+            "id": "174545f9db76294b",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Linux Terminal/Search and Text Manipulation.md",
+                "file": "Offensive Security/Linux Basics.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Linux Terminal/Search and Text Manipulation.md",
+                "file": "Offensive Security/Linux Basics.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Linux Terminal/Search and Text Manipulation.md",
+                "file": "Offensive Security/Linux Basics.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Linux Terminal/Search and Text Manipulation.md"
+                "file": "Offensive Security/Linux Basics.md"
               }
             }
           }
@@ -146,34 +146,34 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "042647909a0cca20",
+  "active": "174545f9db76294b",
   "lastOpenFiles": [
-    "diff.md",
     "Linux Terminal/Search and Text Manipulation.md",
-    "comm.md",
-    "Linux Terminal/locate.md",
-    "sed.md",
-    "Linux Terminal/File Management.md",
-    "2023-04-18.md",
-    "Linux Terminal/awk.md",
-    "Linux Terminal/cut.md",
-    "Linux Terminal/grep.md",
     "Offensive Security/Linux Basics.md",
-    "Linux Terminal/history.md",
-    "Linux Terminal/folders.md",
-    "Linux Terminal/sort.md",
-    "Linux Terminal/wc (word count).md",
-    "Linux Terminal/less.md",
+    "File Permissions.md",
+    "Linux Terminal/id.md",
+    "Linux Terminal/chmod.md",
+    "Linux Terminal/chown.md",
+    "Linux Terminal/sudo.md",
     "Linux Terminal/ls.md",
-    "Linux Terminal/ln.md",
-    "Linux Terminal/awk 1.md",
-    "Linux Terminal/gcc.md",
-    "Linux Terminal/Aliases.md",
-    "Linux Terminal/_etc_issue.md",
-    "Linux Terminal/uname.md",
     "Linux Terminal/man.md",
-    "Linux Terminal/du.md",
-    "Linux Terminal/find.md",
+    "Linux Terminal/_proc_version.md",
+    "Linux Terminal/_etc_shadow.md",
+    "Linux Terminal/File Management.md",
+    "Linux Terminal/Users and Groups.md",
+    "Linux Terminal/su.md",
+    "Linux Terminal/passwd.md",
+    "Linux Terminal/_etc_group.md",
+    "Linux Terminal/usermod.md",
+    "Linux Terminal/_etc_passwd.md",
+    "Untitled.md",
+    "2023-04-18.md",
+    "Note Philosophy.md",
+    "Linux Terminal/nano.md",
+    "Linux Terminal/vi.md",
+    "Linux Terminal/comm.md",
+    "Linux Terminal/diff.md",
+    "Linux Terminal/locate.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",

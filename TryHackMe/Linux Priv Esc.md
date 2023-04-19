@@ -16,7 +16,7 @@ Priv Esc? The exploitation of vulns, design flaws, or configurations in an OS or
 [[sudo]]
 [[ls]]
 [[id]]
-[[_etc_password]]
+[[_etc_passwd]]
 [[history]]
 [[ifconfig]] + [[ip]]
 [[netstat]]
@@ -69,7 +69,7 @@ ex. no exploit bin available but nano has SUID set
 3. upload with a wordlist to John the Ripper
 OR
 1. Generate a password with [[openssl]] `openssl passwd -1 -salt SALT PASS`
-2. using nano, add new user to [[_etc_password]] with the password, give root membership
+2. using nano, add new user to [[_etc_passwd]] with the password, give root membership
 3. `su` to newly created user
 
 Practical ex (given ssh login, low priv): 

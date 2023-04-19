@@ -1,6 +1,7 @@
 list directory
 
 `ls DIR`
+`ls -l a*` - search dir for everything beginning with "a"
 
 `-l`: verbose 
 `-a`: show all, including hidden

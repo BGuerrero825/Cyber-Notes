@@ -6,4 +6,4 @@ show all users on the system, and might have some password hashes
 
 Format 
 https://www.cyberciti.biz/faq/understanding-etcpasswd-file-format/
-`username : password : userID : groupID : userID info : home dir : command/shell`
+`username : password : userID : groupID : userID info (comment) : home dir : command/shell`

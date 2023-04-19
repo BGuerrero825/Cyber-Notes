@@ -5,3 +5,6 @@
 
 [[comm]]
 [[diff]]
+
+[[nano]]
+[[vi]]

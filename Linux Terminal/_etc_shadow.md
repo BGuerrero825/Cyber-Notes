@@ -1,5 +1,6 @@
 contains hashes of passwords for users
 
+`*` in the password field means disabled account 
 
 format:
 
