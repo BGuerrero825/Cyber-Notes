@@ -4,83 +4,22 @@
     "type": "split",
     "children": [
       {
-        "id": "1e33d03db67cdc43",
+        "id": "cbaee1f3efe343df",
         "type": "tabs",
         "children": [
           {
-            "id": "bfab565a819ec602",
+            "id": "042647909a0cca20",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Note Philosophy.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "6b2955580883ff75",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Linux Terminal/grep.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "462d669e2d89458c",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Linux Terminal/msfvenom.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "5d8d173decfcd086",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Windows Terminal/Invoke-WebRequest.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "8c6cc7d8558f3aa5",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Boxes/THM HackPark.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "502c19407f0e4561",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Windows Terminal/icacls.md",
+                "file": "Linux Terminal/Search and Text Manipulation.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 4
+        ]
       }
     ],
     "direction": "vertical"
@@ -146,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Boxes/THM HackPark.md",
+                "file": "Linux Terminal/Search and Text Manipulation.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -163,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Boxes/THM HackPark.md",
+                "file": "Linux Terminal/Search and Text Manipulation.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -186,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Boxes/THM HackPark.md"
+                "file": "Linux Terminal/Search and Text Manipulation.md"
               }
             }
           }
@@ -207,50 +146,51 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "8c6cc7d8558f3aa5",
+  "active": "042647909a0cca20",
   "lastOpenFiles": [
-    "Windows Terminal/icacls.md",
-    "Boxes/THM HackPark.md",
-    "Windows Terminal/Invoke-WebRequest.md",
-    "Note Philosophy.md",
-    "Linux Terminal/grep.md",
-    "Methodology/Priv Esc.md",
-    "Methodology/Payloads.md",
-    "Linux Terminal/msfvenom.md",
-    "Linux Terminal/hydra.md",
-    "responder.md",
-    "Windows Terminal/RDP (xfreerdp).md",
-    "Linux Terminal/nmap.md",
-    "Boxes/THM Net Sec Challenge.md",
-    "Boxes/THM Alfred.md",
-    "Linux Terminal/rdesktop.md",
-    "Linux Terminal/Meterpreter.md",
-    "Linux Terminal/Metasploit.md",
-    "Linux Terminal/ls.md",
+    "diff.md",
+    "Linux Terminal/Search and Text Manipulation.md",
+    "comm.md",
     "Linux Terminal/locate.md",
-    "Linux Terminal/kill.md",
-    "Linux Terminal/curl.md",
-    "Linux Terminal/env.md",
-    "Linux Terminal/ftp.md",
-    "Linux Terminal/_etc_password.md",
-    "Boxes/HTB Monteverde.md",
-    "TryHackMe/Content Discovery.md",
-    "_attachments/Pasted image 20230308163901.png",
-    "_attachments/Pasted image 20230308144844.png",
-    "_attachments/Pasted image 20230308161405.png",
-    "_attachments/Pasted image 20230308160425.png",
+    "sed.md",
+    "Linux Terminal/File Management.md",
+    "2023-04-18.md",
+    "Linux Terminal/awk.md",
+    "Linux Terminal/cut.md",
+    "Linux Terminal/grep.md",
+    "Offensive Security/Linux Basics.md",
+    "Linux Terminal/history.md",
+    "Linux Terminal/folders.md",
+    "Linux Terminal/sort.md",
+    "Linux Terminal/wc (word count).md",
+    "Linux Terminal/less.md",
+    "Linux Terminal/ls.md",
+    "Linux Terminal/ln.md",
+    "Linux Terminal/awk 1.md",
+    "Linux Terminal/gcc.md",
+    "Linux Terminal/Aliases.md",
+    "Linux Terminal/_etc_issue.md",
+    "Linux Terminal/uname.md",
+    "Linux Terminal/man.md",
+    "Linux Terminal/du.md",
+    "Linux Terminal/find.md",
+    "_attachments/Pasted image 20230303175109.png",
+    "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
     "_attachments/Pasted image 20230308151207.png",
-    "Pasted image 20230307134725.png",
-    "_attachments/Pasted image 20230306144622.png",
+    "_attachments/Pasted image 20230308144844.png",
+    "_attachments/Pasted image 20230303153325.png",
+    "_attachments/Pasted image 20230303153311.png",
+    "_attachments/Pasted image 20230303153232.png",
+    "_attachments/Pasted image 20230308163901.png",
+    "_attachments/Pasted image 20230308160425.png",
+    "Offensive Security",
     "Protocols",
     "Active Directory",
-    "_attachments/Pasted image 20230303153232.png",
     "Templates",
     "Untitled 1.canvas",
     "Untitled.canvas",
     "Linux Terminal",
-    "_attachments/Pasted image 20230303175109.png",
     "_attachments/ntlm_passwordspray.py",
     "_attachments",
     "Terminal Bible/Untitled",

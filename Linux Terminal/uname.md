@@ -11,3 +11,5 @@ OR
 
 lshw tool
 useful for searching kernal exploits for priv esc
+
+[[_etc_issue]]

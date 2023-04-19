@@ -1,3 +1,4 @@
+`cat hi.txt | grep -i password`
 
 -e, pattern
 -i, ignore case

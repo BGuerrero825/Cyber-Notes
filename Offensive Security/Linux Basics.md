@@ -1,13 +1,4 @@
-man **command**
-
--k: apropos search
-(in man dialogue)
- /**word to find**, n = next occurence
- 
- also try:
- COMMAND -h
- COMMAND --help
-
+Ctrl+P to switch modes
 
 man pages are sectioned like so:
 1 - User Commands
@@ -19,4 +10,11 @@ man pages are sectioned like so:
 7 - Miscellaneous
 8 - System administration commands
 
-`man 5 passwd`
+`newvar=45`
+`echo $newvar`
+`45`
+
+`set` prints all default environment variables
+
+`ls -l a*` - search dir for everything beginning with "a"
+
