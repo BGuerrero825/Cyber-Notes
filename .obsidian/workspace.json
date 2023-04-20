@@ -4,11 +4,23 @@
     "type": "split",
     "children": [
       {
-        "id": "d146b114037d0e4f",
+        "id": "de464246b4c30d5c",
         "type": "tabs",
         "children": [
           {
-            "id": "174545f9db76294b",
+            "id": "0d9dce059382464d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Windows Basics.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "4293e77f01c152f7",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -69,7 +81,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "37bfb976ed5b23c0",
@@ -85,7 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Windows Basics.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Windows Basics.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +138,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Offensive Security/Linux Basics.md"
+                "file": "Windows Basics.md"
               }
             }
           }
@@ -146,11 +159,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "174545f9db76294b",
+  "active": "0d9dce059382464d",
   "lastOpenFiles": [
-    "Linux Terminal/Search and Text Manipulation.md",
+    "Windows Basics.md",
     "Offensive Security/Linux Basics.md",
+    "Disk Management.md",
+    "mount.md",
+    "fdisk.md",
+    "free.md",
+    "_var_log.md",
+    "_etc_cron.md",
+    "Linux Terminal/find.md",
+    "apt.md",
+    "Monitoring.md",
+    "watch.md",
+    "tail.md",
+    "ps.md",
+    "Linux Terminal/kill.md",
     "File Permissions.md",
+    "Linux Terminal/Search and Text Manipulation.md",
     "Linux Terminal/id.md",
     "Linux Terminal/chmod.md",
     "Linux Terminal/chown.md",
@@ -160,20 +187,6 @@
     "Linux Terminal/_proc_version.md",
     "Linux Terminal/_etc_shadow.md",
     "Linux Terminal/File Management.md",
-    "Linux Terminal/Users and Groups.md",
-    "Linux Terminal/su.md",
-    "Linux Terminal/passwd.md",
-    "Linux Terminal/_etc_group.md",
-    "Linux Terminal/usermod.md",
-    "Linux Terminal/_etc_passwd.md",
-    "Untitled.md",
-    "2023-04-18.md",
-    "Note Philosophy.md",
-    "Linux Terminal/nano.md",
-    "Linux Terminal/vi.md",
-    "Linux Terminal/comm.md",
-    "Linux Terminal/diff.md",
-    "Linux Terminal/locate.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",

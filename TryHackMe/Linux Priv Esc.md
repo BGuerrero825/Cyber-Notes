@@ -11,7 +11,7 @@ Priv Esc? The exploitation of vulns, design flaws, or configurations in an OS or
 [[uname]]
 [[_proc_version]]
 [[_etc_issue]]
-[[ps]]
+[[Linux Terminal/ps]]
 [[env]]
 [[sudo]]
 [[ls]]
