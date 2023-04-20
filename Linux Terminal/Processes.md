@@ -5,3 +5,5 @@ Ctrl+C to interrupt, or Ctrl_Z to suspend
 `bg` resume a backgrounded job with
 `jobs` to list current jobs
 `fg %2` or `fg` to bring a job to the foreground
+[[ps 1]]
+[[kill]]

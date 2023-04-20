@@ -8,24 +8,12 @@
         "type": "tabs",
         "children": [
           {
-            "id": "0d9dce059382464d",
+            "id": "25bb152febaf0cd7",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Note Philosophy.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "4293e77f01c152f7",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Linux Terminal/ps.md",
                 "mode": "source",
                 "source": false
               }
@@ -81,7 +69,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 350.5
   },
   "right": {
     "id": "37bfb976ed5b23c0",
@@ -97,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Note Philosophy.md",
+                "file": "Linux Terminal/ps.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -114,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Note Philosophy.md",
+                "file": "Linux Terminal/ps.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -137,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Note Philosophy.md"
+                "file": "Linux Terminal/ps.md"
               }
             }
           }
@@ -145,8 +133,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 200
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -158,16 +145,19 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "0d9dce059382464d",
+  "active": "25bb152febaf0cd7",
   "lastOpenFiles": [
     "Linux Terminal/ps 1.md",
-    "Linux Terminal/File Permissions.md",
-    "Note Philosophy.md",
-    "Linux Terminal/watch.md",
-    "Linux Terminal/tail.md",
     "Offensive Security/Linux Basics.md",
-    "Linux Terminal/Disk Management.md",
+    "Linux Terminal/Monitoring.md",
+    "Linux Terminal/watch.md",
+    "Linux Terminal/Processes.md",
     "Offensive Security/Windows Basics.md",
+    "Note Philosophy.md",
+    "Linux Terminal/ps.md",
+    "Linux Terminal/File Permissions.md",
+    "Linux Terminal/tail.md",
+    "Linux Terminal/Disk Management.md",
     "Linux Terminal/mount.md",
     "Linux Terminal/fdisk.md",
     "Linux Terminal/free.md",
@@ -175,7 +165,6 @@
     "Linux Terminal/_etc_cron.md",
     "Linux Terminal/find.md",
     "Linux Terminal/apt.md",
-    "Linux Terminal/Monitoring.md",
     "Linux Terminal/kill.md",
     "Linux Terminal/Search and Text Manipulation.md",
     "Linux Terminal/id.md",
@@ -184,8 +173,6 @@
     "Linux Terminal/sudo.md",
     "Linux Terminal/ls.md",
     "Linux Terminal/man.md",
-    "Linux Terminal/_proc_version.md",
-    "Linux Terminal/_etc_shadow.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
