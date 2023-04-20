@@ -11,8 +11,7 @@ Ctrl+P to switch modes
 [[Users and Groups]]
 [[File Permissions]]
 
-
-[[ps]]
+[[ps 1]]
 [[kill]]
 
 [[Monitoring]]

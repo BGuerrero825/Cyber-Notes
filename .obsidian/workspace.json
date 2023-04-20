@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Windows Basics.md",
+                "file": "Note Philosophy.md",
                 "mode": "source",
                 "source": false
               }
@@ -97,7 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Windows Basics.md",
+                "file": "Note Philosophy.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -114,7 +114,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Windows Basics.md",
+                "file": "Note Philosophy.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -137,7 +137,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Windows Basics.md"
+                "file": "Note Philosophy.md"
               }
             }
           }
@@ -160,22 +160,23 @@
   },
   "active": "0d9dce059382464d",
   "lastOpenFiles": [
-    "Windows Basics.md",
+    "Linux Terminal/ps 1.md",
+    "Linux Terminal/File Permissions.md",
+    "Note Philosophy.md",
+    "Linux Terminal/watch.md",
+    "Linux Terminal/tail.md",
     "Offensive Security/Linux Basics.md",
-    "Disk Management.md",
-    "mount.md",
-    "fdisk.md",
-    "free.md",
-    "_var_log.md",
-    "_etc_cron.md",
+    "Linux Terminal/Disk Management.md",
+    "Offensive Security/Windows Basics.md",
+    "Linux Terminal/mount.md",
+    "Linux Terminal/fdisk.md",
+    "Linux Terminal/free.md",
+    "Linux Terminal/_var_log.md",
+    "Linux Terminal/_etc_cron.md",
     "Linux Terminal/find.md",
-    "apt.md",
-    "Monitoring.md",
-    "watch.md",
-    "tail.md",
-    "ps.md",
+    "Linux Terminal/apt.md",
+    "Linux Terminal/Monitoring.md",
     "Linux Terminal/kill.md",
-    "File Permissions.md",
     "Linux Terminal/Search and Text Manipulation.md",
     "Linux Terminal/id.md",
     "Linux Terminal/chmod.md",
@@ -185,7 +186,6 @@
     "Linux Terminal/man.md",
     "Linux Terminal/_proc_version.md",
     "Linux Terminal/_etc_shadow.md",
-    "Linux Terminal/File Management.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
