@@ -8,12 +8,24 @@
         "type": "tabs",
         "children": [
           {
-            "id": "4293e77f01c152f7",
+            "id": "f190e7b4fe59d794",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Windows Terminal/Access Controls.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "88435b5d319c17b0",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Windows Terminal/runas.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Windows Terminal/Access Controls.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +114,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Offensive Security/Linux Basics.md",
+                "file": "Windows Terminal/Access Controls.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +137,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Offensive Security/Linux Basics.md"
+                "file": "Windows Terminal/Access Controls.md"
               }
             }
           }
@@ -146,34 +158,35 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "4293e77f01c152f7",
+  "active": "f190e7b4fe59d794",
   "lastOpenFiles": [
-    "Windows Basics.md",
     "Offensive Security/Windows Basics.md",
-    "Linux Terminal/watch.md",
-    "Linux Terminal/tail.md",
-    "Linux Terminal/mount.md",
-    "Linux Terminal/free.md",
-    "Linux Terminal/fdisk.md",
-    "Linux Terminal/apt.md",
-    "Linux Terminal/_var_log.md",
-    "Linux Terminal/_etc_cron.md",
-    "Linux Terminal/Processes.md",
-    "Linux Terminal/Monitoring.md",
-    "Linux Terminal/File Permissions.md",
-    "Linux Terminal/Disk Management.md",
-    "Offensive Security/Linux Basics.md",
-    "Disk Management.md",
-    "mount.md",
-    "fdisk.md",
-    "free.md",
-    "_var_log.md",
-    "_etc_cron.md",
+    "Windows Terminal/Access Controls.md",
+    "Windows Terminal/find.md",
+    "File and Text Search.md",
+    "Windows Terminal/runas.md",
+    "Linux Terminal/tree.md",
+    "Windows Terminal/sort.md",
+    "Windows Terminal/findstr.md",
+    "Windows Shells/findstr.md",
+    "Windows Shells",
+    "Windows Terminal/tree.md",
     "Linux Terminal/find.md",
-    "apt.md",
-    "Monitoring.md",
-    "watch.md",
-    "tail.md",
+    "forfiles.md",
+    "Windows Terminal/dir.md",
+    "mklink.md",
+    "robocopy.md",
+    "Windows Terminal/Windows Shells.md",
+    "rmdir.md",
+    "Windows Terminal/systeminfo.md",
+    "psinfo.md",
+    "set.md",
+    "Windows Directories.md",
+    "Offensive Security/Linux Basics.md",
+    "__.md",
+    "Windows Terminal/cd.md",
+    "Windows File System Navigation.md",
+    "Windows Terminal/type.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
@@ -194,7 +207,6 @@
     "_attachments/ntlm_passwordspray.py",
     "_attachments",
     "Terminal Bible/Untitled",
-    "Python",
-    "Active Directory"
+    "Python"
   ]
 }

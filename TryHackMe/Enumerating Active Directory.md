@@ -17,7 +17,7 @@ SSH or RDP into jump box, remember to specify domain when connecting via RDP
 # Credential Injection
 Credentials are often found before compromising a domain machine.
 
-### [[runas.exe]]
+### [[runas]]
 In depth enumeration and exploitation often requires acting like a Windows machine.
 `runas.exe /netonly /user:DOMAIN\USERNAME cmd.exe`
 Since the DC isn't used to validate, we can supply any password at the prompt (Note: run the initial cmd terminal as admin)

@@ -20,7 +20,7 @@ Priv Esc? The exploitation of vulns, design flaws, or configurations in an OS or
 [[history]]
 [[ifconfig]] + [[ip]]
 [[netstat]]
-[[find]]
+[[Linux Terminal/find]]
 [[python]]
 
 # Automated Enumeration

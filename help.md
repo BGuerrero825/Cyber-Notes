@@ -1,0 +1,2 @@
+`help COMMAND`
+`COMMAND /?`

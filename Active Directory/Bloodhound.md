@@ -13,7 +13,7 @@ Version for running on Azure. Generated paths for the config of Azure Identity a
 
 **Sharphound and Bloodhound versions should match for best results**
 
-We can use [[runas.exe]] on a controlled Windows machine, that is not domain joined, to feed AD creds and point it to the DC to run a sweep. In provided example, we are provided an authenticated windows jump box.
+We can use [[runas]] on a controlled Windows machine, that is not domain joined, to feed AD creds and point it to the DC to run a sweep. In provided example, we are provided an authenticated windows jump box.
 
 `Sharphound.exe --CollectionMethods <Methods> --Domain za.tryhackme.com --ExcludeDCs`
 - --CollectionMethods, "Default" and "All", rspecifies what information to collect. Data is then cache'd for reruns

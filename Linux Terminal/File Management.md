@@ -7,4 +7,4 @@
 [[ln]]
 [[which]]
 [[locate]]
-[[find]]
+[[Linux Terminal/find]]
