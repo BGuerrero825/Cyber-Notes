@@ -1,0 +1,6 @@
+[[dir]]
+[[Windows/tree]]
+[[forfiles]]
+[[Windows/find]]
+[[findstr]]
+[[Windows/sort]]

@@ -19,3 +19,4 @@ https://ss64.com/nt/syntax-redirection.html
 
 ### Windows II
 [[Access Controls]]
+[[User and Group Permissions]]

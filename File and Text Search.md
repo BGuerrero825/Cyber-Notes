@@ -1,6 +1,0 @@
-[[dir]]
-[[Windows Terminal/tree]]
-[[forfiles]]
-[[Windows Terminal/find]]
-[[findstr]]
-[[Windows Terminal/sort]]

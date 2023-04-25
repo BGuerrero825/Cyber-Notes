@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Windows Terminal/Access Controls.md",
+                "file": "Windows/User and Group Permissions.md",
                 "mode": "source",
                 "source": false
               }
@@ -25,7 +25,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Windows Terminal/runas.md",
+                "file": "Windows/runas.md",
                 "mode": "source",
                 "source": false
               }
@@ -97,7 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Windows Terminal/Access Controls.md",
+                "file": "Windows/User and Group Permissions.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -114,7 +114,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Windows Terminal/Access Controls.md",
+                "file": "Windows/User and Group Permissions.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -137,7 +137,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Windows Terminal/Access Controls.md"
+                "file": "Windows/User and Group Permissions.md"
               }
             }
           }
@@ -161,32 +161,32 @@
   "active": "f190e7b4fe59d794",
   "lastOpenFiles": [
     "Offensive Security/Windows Basics.md",
-    "Windows Terminal/Access Controls.md",
-    "Windows Terminal/find.md",
-    "File and Text Search.md",
-    "Windows Terminal/runas.md",
-    "Linux Terminal/tree.md",
-    "Windows Terminal/sort.md",
-    "Windows Terminal/findstr.md",
+    "Windows/rmdir.md",
+    "Windows/set.md",
+    "responder.md",
+    "Windows/robocopy.md",
+    "Windows/Windows Directories.md",
+    "Windows/User and Group Permissions.md",
+    "Note Philosophy.md",
+    "Windows/psinfo.md",
+    "Windows/runas.md",
+    "Windows/mklink.md",
+    "Windows/File and Text Search.md",
+    "Windows/help.md",
+    "Windows/forfiles.md",
+    "TryHackMe/Breaching Active Directory.md",
+    "Scripting/LD_PRELOAD.md",
+    "Scripting/CLI Arguments.md",
+    "Windows/Access Controls.md",
+    "Windows/net.md",
+    "Windows/find.md",
+    "Linux/tree.md",
+    "Windows/sort.md",
+    "Windows/findstr.md",
     "Windows Shells/findstr.md",
     "Windows Shells",
-    "Windows Terminal/tree.md",
-    "Linux Terminal/find.md",
-    "forfiles.md",
-    "Windows Terminal/dir.md",
-    "mklink.md",
-    "robocopy.md",
-    "Windows Terminal/Windows Shells.md",
-    "rmdir.md",
-    "Windows Terminal/systeminfo.md",
-    "psinfo.md",
-    "set.md",
-    "Windows Directories.md",
-    "Offensive Security/Linux Basics.md",
-    "__.md",
-    "Windows Terminal/cd.md",
-    "Windows File System Navigation.md",
-    "Windows Terminal/type.md",
+    "Windows/tree.md",
+    "Linux/find.md",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
@@ -203,7 +203,7 @@
     "Templates",
     "Untitled 1.canvas",
     "Untitled.canvas",
-    "Linux Terminal",
+    "Linux",
     "_attachments/ntlm_passwordspray.py",
     "_attachments",
     "Terminal Bible/Untitled",

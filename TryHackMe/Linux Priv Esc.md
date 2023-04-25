@@ -11,7 +11,7 @@ Priv Esc? The exploitation of vulns, design flaws, or configurations in an OS or
 [[uname]]
 [[_proc_version]]
 [[_etc_issue]]
-[[Linux Terminal/ps]]
+[[ps]]
 [[env]]
 [[sudo]]
 [[ls]]
@@ -20,7 +20,7 @@ Priv Esc? The exploitation of vulns, design flaws, or configurations in an OS or
 [[history]]
 [[ifconfig]] + [[ip]]
 [[netstat]]
-[[Linux Terminal/find]]
+[[Linux/find]]
 [[python]]
 
 # Automated Enumeration
