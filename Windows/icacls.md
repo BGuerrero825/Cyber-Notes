@@ -3,6 +3,11 @@ check and set directory/file privileges
 `icacls C:\WINDOW|DIRECTORY\OR\FILE.exe /grant Everyone:F`
 `icacls * | findstr (M)*` - list all in dir, find all modifiable
 
-`-grant GROUP:PERM`: Groups - Everyone,... Perms: F
-Basic PERMs: (F) Full access, (M) Modify access, (RX) Read and execute access, (R) Read-only access, (W), Write-only access
-Advanced PERMs: (D) Delete, (RD) Read data/list directory, (WD) Write data/add file, (AD) Append data/add subdirectory
+- `/grant GROUP:PERM` : 
+	Groups - Everyone, Administrators, etc. Perms: F
+	Basic PERMs: (F) Full access, (M) Modify access, (RX) Read and execute access, (R) Read-only access, (W), Write-only access
+	Advanced PERMs: (D) Delete, (RD) Read data/list directory, (WD) Write data/add file, (AD) Append data/add subdirectory
+- `/deny ... `
+- `/t` : recursive
+- `/c` : ignore errors
+- `/l` : execute on link instead of target

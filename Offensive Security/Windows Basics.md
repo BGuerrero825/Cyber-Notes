@@ -11,7 +11,7 @@ Environment Variables (`%VARIABLE_NAME%`)
 	USERNAME : Shows the currently logged on user
 	TEMP - Returns the default temporary storage directory(ies)
 	USERPROFILE - Holds the profile location of the current user
- [[SysInterals]] : [[psinfo]] , etc...
+ [[SysInterals]]
 [[robocopy]] - copy with high tolerance for network interruptions
 [[mklink]]
 [[File and Text Search]]
@@ -19,4 +19,5 @@ https://ss64.com/nt/syntax-redirection.html
 
 ### Windows II
 [[Access Controls]]
-[[User and Group Permissions]]
+[[Permissions]]
+[[NTFS]]

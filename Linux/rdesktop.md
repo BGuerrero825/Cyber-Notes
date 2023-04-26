@@ -1,4 +1,4 @@
-rdesktop **IP**:**port**
+`rdesktop -u USERNAME -p PASSWORD IP-ADDRESS`
 
--f: fullscreen
--g **resolution**
+`-f` : fullscreen
+`-g` : resolution

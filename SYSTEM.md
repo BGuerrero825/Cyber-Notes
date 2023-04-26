@@ -1,0 +1,1 @@
+Used by the OS to run services with elevated permissions. Not intended to be logged in by a human user.
