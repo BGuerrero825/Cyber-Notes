@@ -8,43 +8,18 @@
         "type": "tabs",
         "children": [
           {
-            "id": "f190e7b4fe59d794",
+            "id": "88435b5d319c17b0",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Windows/Permissions.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "adcce2abfa953468",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "NTFS.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "fb70ffb480d1cd44",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Windows/Windows Shells.md",
+                "file": "Windows/runas.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -110,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Windows/Windows Shells.md",
+                "file": "Windows/runas.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Windows/Windows Shells.md",
+                "file": "Windows/runas.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -150,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Windows/Windows Shells.md"
+                "file": "Windows/runas.md"
               }
             }
           }
@@ -171,35 +146,35 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "fb70ffb480d1cd44",
+  "active": "88435b5d319c17b0",
   "lastOpenFiles": [
-    "Windows/Windows File System Navigation.md",
-    "Windows/Windows Shells.md",
-    "Windows/wmic.md",
-    "Windows/File and Text Search.md",
-    "Windows/Access Controls.md",
-    "Windows/cd.md",
-    "Windows/Windows Directories.md",
-    "Windows/help.md",
-    "Windows/runas.md",
-    "NTFS.md",
-    "Windows/dir.md",
-    "Windows/findstr.md",
     "accesschk.md",
-    "SysInterals.md",
-    "Offensive Security/Windows Basics.md",
-    "Windows/icacls.md",
-    "Windows/Permissions.md",
     "_Users_USER_AppData.md",
-    "Linux/rdesktop.md",
-    "2023-04-25.md",
-    "Administrator.md",
-    "Linux/xfreerdp.md",
-    "Windows/net.md",
+    "Windows/Permissions.md",
+    "SysInterals.md",
     "SYSTEM.md",
+    "NTFS.md",
+    "Linux/xfreerdp.md",
     "Guest.md",
+    "Administrator.md",
+    "Windows/User and Group Permissions.md",
+    "Windows/RDP (xfreerdp).md",
+    "Offensive Security/Windows Basics.md",
     "Windows/rmdir.md",
-    "Windows/Windows Shells",
+    "Windows/set.md",
+    "responder.md",
+    "Windows/robocopy.md",
+    "Windows/Windows Directories.md",
+    "Note Philosophy.md",
+    "Windows/psinfo.md",
+    "Windows/runas.md",
+    "Windows/mklink.md",
+    "Windows/File and Text Search.md",
+    "Windows/help.md",
+    "Windows/forfiles.md",
+    "TryHackMe/Breaching Active Directory.md",
+    "Scripting/LD_PRELOAD.md",
+    "Windows Shells",
     "_attachments/Pasted image 20230303175109.png",
     "_attachments/Pasted image 20230306144622.png",
     "_attachments/Pasted image 20230308151625.png",
