@@ -22,4 +22,6 @@ https://ss64.com/nt/syntax-redirection.html
 [[Permissions]]
 [[NTFS]]
 [[Windows/Processes]]
+[[DLLs]]
+[[Registry]]
 
