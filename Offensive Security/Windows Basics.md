@@ -11,7 +11,7 @@ Environment Variables (`%VARIABLE_NAME%`)
 	USERNAME : Shows the currently logged on user
 	TEMP - Returns the default temporary storage directory(ies)
 	USERPROFILE - Holds the profile location of the current user
- [[SysInterals]]
+[[SysInterals]]
 [[robocopy]] - copy with high tolerance for network interruptions
 [[mklink]]
 [[File and Text Search]]
