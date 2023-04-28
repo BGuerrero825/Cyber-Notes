@@ -15,8 +15,9 @@ Full Control : supersedes individual file permissions
 
 Permissions are inherited from the directory they are contained within
 
+[[runas]]
 [[icacls]]
-
+[[net]]
 
 ### Special Permissions
 The above **Basic Permissions** are comprised of more granular **Special Permissions**

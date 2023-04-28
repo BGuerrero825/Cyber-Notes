@@ -5,8 +5,8 @@ Impersonate another user.
 
 ### Useful Examples
 - `runas.exe /netonly /user:DOMAIN\USERNAME cmd.exe`
-- `runas /noprofile /user:mymachine\administrator cmd`
--  `runas /profile /env /user:mydomain\admin "mmc %windir%\system32\dsa.msc"`
+- `runas /noprofile /user:administrator cmd`
+- `runas /profile /env /user:mydomain\admin "mmc %windir%\system32\dsa.msc"`
 - `runas /env /user:user@domain.microsoft.com "notepad \"my file.txt\""` : use user creds to open file, but from the context of the remote user
 
 
