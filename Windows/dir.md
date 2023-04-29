@@ -4,3 +4,4 @@
 `/s` : search recursively
 `/p` : pause text after it fills the terminal
 `/b` : print full filepath
+`/r` : list alternate [[Data Streams]]
