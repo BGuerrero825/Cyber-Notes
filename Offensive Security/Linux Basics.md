@@ -10,15 +10,9 @@ Ctrl+P to switch modes
 ### Linux II
 [[Users and Groups]]
 [[File Permissions]]
-
 [[Processes]]
-
 [[Monitoring]]
-
 [[apt]]
-
 [[_etc_cron]]
-
 [[_var_log]]
-
 [[Disk Management]]
