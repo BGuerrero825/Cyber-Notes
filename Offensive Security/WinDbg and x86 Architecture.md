@@ -14,3 +14,5 @@ Stack Frame : section of stack data dedicated to a single function call. Begins 
 
 Debugger : a proxy between the program instructions and CPU execution
 Memory Spaces : Kernel-mode (ring 0) and User-mode (ring 3)
+
+[[WinDbg]]
