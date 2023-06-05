@@ -14,7 +14,7 @@ Requires internet connection to download symbols for loaded modules
 
 ### Unassemble Memory
 display assembly translation of specified program code in memory
-`u ADDRESS|ADDRESS_RANGE` : if no argument will begin from the EIP
+`u ADDRESS|ADDRESS_RANGE` : if no argument, will begin from the EIP
 `u kernel32!GetCurrentThread` : given a function symbol, resolves to associated address
 
 ### Reading from Memory
@@ -51,6 +51,8 @@ example: shellcode that writes a file to disk, the path needs to be supplied as 
 `r REGISTER`
 `r ecx=41414141` : edit register
 
+### Inspect Callstack
+`k` : dump callstack 
 
 # Breakpoints
 Software breakpoints : directly controlled by debugger
