@@ -8,6 +8,8 @@
 6. Point EIP to that instruction address
 7. Deploy shellcode into ESP pointed stack space
 
+[[WinDbg and x86 Architecture]]
+
 # Steps
 1. Crash the Application 
 2. Control EIP 

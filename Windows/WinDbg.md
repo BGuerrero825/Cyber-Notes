@@ -127,3 +127,6 @@ r @$t0 = (41414141 - 414141) * 0n10  # perform calculation, then store to regist
 r @$t0 # print register
 ? @$t0 >> 8 # perform a bitshift of 8
 ```
+
+## Other
+`!exchain` : extension to list the current thread exception handler chain
