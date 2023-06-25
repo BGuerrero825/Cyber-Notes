@@ -10,6 +10,8 @@
 
 [[WinDbg and x86 Architecture]]
 
+![[Pasted image 20230618193223.png]]
+
 # Steps
 1. Crash the Application 
 2. Control EIP 

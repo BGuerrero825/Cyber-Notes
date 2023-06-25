@@ -130,3 +130,4 @@ r @$t0 # print register
 
 ## Other
 `!exchain` : extension to list the current thread exception handler chain
+narly : `.load narly` -> `!nmod` : lists all loaded modules and their memory protections (SafeSEH, GS, DEP, and ASL)
