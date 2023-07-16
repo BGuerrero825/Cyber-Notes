@@ -24,6 +24,7 @@ display assembly translation of specified program code in memory
 `dq ...` : (8 bytes) | `dc ...` : print with ascii
 add `L` and number to only print X amount of bytes
 `dd poi(REGISTER)` : get data from register pointer address
+`da ...` : display ASCII, 48 characters per line, stops at null byte or end of range
 
 ### Dump Structures from Memory
 structures can be hard to decipher once compiled to binary
@@ -45,6 +46,8 @@ example: shellcode that writes a file to disk, the path needs to be supplied as 
 `s...` : search memory
 `s -d 0 L?80000000 41414141` : search for dword 41414141, searching from 0 and through all memory ?80000000 (entire process memory space)
 `s -a 0 L?80000000 "This program cannot be run in DOS mode"` : search program for ascii string
+`-b` : print as bytes (default)
+`-[1]...` : Only show address of search matches. Use in a .foreach where output is piped
 
 ### Inspect and Edit Registers
 `r` : inspect all registers 

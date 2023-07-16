@@ -2,6 +2,8 @@ shows existing communications
 
 `netstat`
 
+`netstat -lntu` : check all active connections? (check options)
+
 -a: 
 "all" show all listening ports and established connections
 -at/-au: 

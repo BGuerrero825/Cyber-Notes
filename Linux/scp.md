@@ -1,9 +1,11 @@
 ### Usage
-secure copy
+move files to and from a host over an SSH connection
 
-`scp -p PORT USER@DOMAIN_OR_IP:REMOTE_PATH LOCAL_DESTINATION`
+Host -> Client
+`scp -p PORT babu@mysshserver.gg:/home/kali/remote_secret.txt local_secret.txt`
 
-`scp -p 2222 student@192.168.150.52:exploit.exe /home/stuff`
+Client -> Host
+`scp -p PORT local_secret.txt babu@mysshserver.gg:/home/kali/remote_secret.txt`
 
 ### Useful Examples
 - 
