@@ -90,3 +90,45 @@ Since the traditional short jump doesn't work, lets try a conditional jump instr
 3. `bp` at the return instruction and run again, `u poi(@esp)` before the return to check if the instructions loaded correctly, and `r @zf` before the jump to ensure the condition is right
 4. Take the jump and `u @eip` to ensure we ended up in the buffer space
 5. `db @eip L100` -> `? FINAL_ROW_ADDR + LAST_CHAR_HEX_OFFSET - @eip` : which returns the amount of space for shellcode, in this case 251
+
+# Egghunting (Finding Alternative Buffers)
+Since 251 bytes is not enough for a robust shellcode, we look into ways to extend the buffer sent to the application
+- Attempt 1, sending a large buffer in the body of the HTTP request, fails (application doesn't crash or crash changed)
+- Attempt 2, send a large buffer after the HTTP request (after a `/r/n/r/n`), succeeds
+With this buffer, we prepend an identifiable string that we can then search the program memory space with `s -a 0x0 L?80000000 babu_was_here` : this is our egg
+
+### The Heap
+The address returned by the egg is not in our current stack. Using the `!address ADDRESS` extension in WinDbg, we see that its stored somewhere on the heap.
+Processes can request heap space through the Windows heap manager by use of API calls like HeapAlloc, HeapFree, etc. These then call into native Windows function in `ntdll.dll`.
+All processes get a new "Default Process Heap" at start, but new heaps can be requested by the process at runtime (through the heap API or with C calls malloc / free). This implementation is called NT Heap.
+The heap is all dynamically allocated memory, so our buffer space cannot be pre-determined
+
+### Egghunter: Keystone Engine
+Egghunter - a stage one payload that searches for a static string in memory, an egg, then jumping to that address.
+Egghunters must be small to fit as a stage 1, fast to prevent process hanging, and robust to handle access violations. 
+One way to build egghunter logic is to write the assembly, compile it, then open the program in IDA to get the opcodes. But this is tedious when constant corrections are needed. 
+
+Now introducing **the Keystone Engine** : an assembler framework allowing us to write assembly code in a python script (or other language) and have it compile directly to machine code.
+Install instructions here: https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-NIX.md , download source code from their website
+terminal usage: `kstool x32 "add eax, ebx"`
+python usage:
+```
+from keystone import *
+CODE = (
+	"start:
+		xor eax, eax;
+		...
+		pop esi;"
+)
+ks = Ks(KS_ARCH_X86, KS_MODE_32)
+encoding, count = ks.asm(CODE)
+instructions = ""
+for dec in encoding:
+	instructions += "\\x{0:02x}".format(int(dec)).rstrip("\n")
+print("Opcodes = (\"" + instructions + "\")")
+```
+After producing shellcode with one of these tools, it can be verified with msf-nasm_shell
+
+`StatusAccessViolationCode` 
+`NTAccessCheckAndAUditAlarms`
+

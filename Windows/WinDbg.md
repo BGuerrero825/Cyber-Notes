@@ -94,7 +94,7 @@ Ex.
 - `ba w 2 03b2c768` : set hardware breakpoint on memory address of the first character
 - `g`
 - In notepad, replace string with "a", this triggers breakpoint, edi register points to the string
-- `du edi` > "a00tw00t" 
+- `du edi` > "w00tw00t" 
 
 ### Stepping Through Code
 `p` : step over instruction
