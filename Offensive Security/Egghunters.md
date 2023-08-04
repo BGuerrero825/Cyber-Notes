@@ -58,15 +58,14 @@ Same process as usual, but in this exploit the program will not crash (not reach
 	1. msf-pattern_create didn't work here due to changing the nature of the overflow... need to try manually (binary split search)
  2. Find an instruction to jump to with `load .narly` -> `!nmod`
  3. But we find that the only module included with the program is Savant itself, and it is preceded with a null byte, meaning it would break the exploit
-
 ### Partial EIP Overwrite
-Remember how our value on the stack was null terminated? We can leverage that to reach Savant modules locates in the 00XXXXXX range
+Remember how our value on the stack was null terminated? We can leverage that to reach Savant modules located in the 00XXXXXX range
 1. Change script to only overwrite the first three bytes : `input buffer += b'\x60\x60\x60`, removing anything post EIP buffer as well
 2. Locate an instruction in Savant code space that will jump to controllable overflow space.
-	1. We don't have any space after our instruction on the stack, but the second value on the stack still points to the top of our input (the GET and subsequent overflow)
+	1. We don't have any space after our instruction on the stack (where ESP points), but the second value on the stack still points to the top of our input (the GET and subsequent overflow)
 	2. This requires a POP 32, RET
-	3. First we inspect the unassembled code at that address (the GET) to see if it will break the exploit, it does at `add byte ptr [eax],al` since eax is the address 0x00000000.
-	4. But, we can try to specifically pop the extra value from the stack into eax to make it a valid address. (POP EAX, RET)
+	3. First we inspect the unassembled code at that address (the GET) to see if it will break the exploit, it does at `add byte ptr [eax],al` since EAX is the address 0x00000000.
+	4. But, we can try to specifically pop the extra value from the stack into EAX to make it a valid address. (POP EAX, RET)
 	5. `lm m savant` -> `s ADDR_START ADDR_END 58 C3`, using `msf-nasm_shell` to determine the opcodes 58 and C3 
 	6. Input address of instruction into exploit code `inputBuffer += pack('<L', (ADDR_NO_0's))`
 	7. `bp ADDR` : and test the new exploit, stepping through to ensure there are no access violations, but there is on a later `byte ptr [edi],ch` instruction :(
@@ -80,7 +79,7 @@ We could place a short jump in its place to get to our buffer
 	- Even though we tested bad chars earlier, input can be checked and managed differently in the program depending on which section of memory you are writing to, in this case the HTTP method is checked differently
 
 ### Using Conditional Jump
-Since the traditional short jump doesn't work, lets try a conditional jump instruction. For this specific case, we'll use JE (also called JZ) which checks the ZF flag. The ZF flag is the "zero flag" and will be set to 1 on a TEST instruction (and others) if the arithmetic being checked equals 0
+Since the traditional short jump doesn't work, we use a conditional jump instruction. For this specific case, we'll use JE (also called JZ) which checks the ZF flag. The ZF flag is the "zero flag" and will be set to 1 on a TEST instruction (and others) if the arithmetic being checked equals 0
 - In reverse order, we need to jump if ZF is 1, test arithmetic to ensure ZF is 1, set a register to control our test. An instruction flow that matches this would be"
 	- `xor ecx, ecx` : zero's out ECX (we could use any register)
 	- `test ecx, ecx` : sets the ZF to 1
@@ -94,17 +93,17 @@ Since the traditional short jump doesn't work, lets try a conditional jump instr
 # Egghunting (Finding Alternative Buffers)
 Since 251 bytes is not enough for a robust shellcode, we look into ways to extend the buffer sent to the application
 - Attempt 1, sending a large buffer in the body of the HTTP request, fails (application doesn't crash or crash changed)
-- Attempt 2, send a large buffer after the HTTP request (after a `/r/n/r/n`), succeeds
+- Attempt 2, send a large buffer after the HTTP request (after a `/r/n/r/n`), this succeeds but it doesn't go into our reachable stack location
 With this buffer, we prepend an identifiable string that we can then search the program memory space with `s -a 0x0 L?80000000 babu_was_here` : this is our egg
 
 ### The Heap
-The address returned by the egg is not in our current stack. Using the `!address ADDRESS` extension in WinDbg, we see that its stored somewhere on the heap.
+- The address returned by the egg is not in our current stack. Its on the heap, as seen with `!address ADDRESS` extension in WinDbg
 Processes can request heap space through the Windows heap manager by use of API calls like HeapAlloc, HeapFree, etc. These then call into native Windows function in `ntdll.dll`.
 All processes get a new "Default Process Heap" at start, but new heaps can be requested by the process at runtime (through the heap API or with C calls malloc / free). This implementation is called NT Heap.
-The heap is all dynamically allocated memory, so our buffer space cannot be pre-determined
+The heap is all dynamically allocated memory, so our buffer space cannot be pre-determined.
 
 ### Egghunter: Keystone Engine
-Egghunter - a stage one payload that searches for a static string in memory, an egg, then jumping to that address.
+Egghunter : a stage one payload that searches for a static string in memory, an egg, then jumps to that address.
 Egghunters must be small to fit as a stage 1, fast to prevent process hanging, and robust to handle access violations. 
 One way to build egghunter logic is to write the assembly, compile it, then open the program in IDA to get the opcodes. But this is tedious when constant corrections are needed. 
 
@@ -127,6 +126,7 @@ for dec in encoding:
 	instructions += "\\x{0:02x}".format(int(dec)).rstrip("\n")
 print("Opcodes = (\"" + instructions + "\")")
 ```
+[[LESSON]] : don't name your file `keystone.py` as this is the library name...
 After producing shellcode with one of these tools, it can be verified with msf-nasm_shell
 
 `StatusAccessViolationCode` 
