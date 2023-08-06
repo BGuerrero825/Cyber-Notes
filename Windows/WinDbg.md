@@ -46,7 +46,7 @@ example: shellcode that writes a file to disk, the path needs to be supplied as 
 `s...` : search memory
 `s -d 0 L?80000000 41414141` : search for dword 41414141, searching from 0 and through all memory ?80000000 (entire process memory space)
 `s -a 0 L?80000000 "This program cannot be run in DOS mode"` : search program for ascii string
-`-b` : print as bytes (default)
+`-b|w|d|q|a|u` : print as bytes (default), word, dword, qword, ASCII, or unicode
 `-[1]...` : Only show address of search matches. Use in a .foreach where output is piped
 
 ### Inspect and Edit Registers
@@ -131,6 +131,7 @@ r @$t0 # print register
 ? @$t0 >> 8 # perform a bitshift of 8
 ```
 
-## Other
+## Other & Extensions
 `!exchain` : extension to list the current thread exception handler chain
 narly : `.load narly` -> `!nmod` : lists all loaded modules and their memory protections (SafeSEH, GS, DEP, and ASL)
+`!address ADDRESS` : extension that shows in what section of memory a given address resides

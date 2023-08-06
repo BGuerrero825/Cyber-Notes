@@ -56,7 +56,7 @@ Same process as usual, but in this exploit the program will not crash (not reach
 # Gaining Code Execution
 1. Determine exact offset of the EIP overwrite
 	1. msf-pattern_create didn't work here due to changing the nature of the overflow... need to try manually (binary split search)
- 2. Find an instruction to jump to with `load .narly` -> `!nmod`
+ 2. Find an instruction to jump to with `.load narly` -> `!nmod`
  3. But we find that the only module included with the program is Savant itself, and it is preceded with a null byte, meaning it would break the exploit
 
 ### Partial EIP Overwrite
@@ -69,7 +69,7 @@ Remember how our value on the stack was null terminated? We can leverage that to
 	4. But, we can try to specifically pop the extra value from the stack into eax to make it a valid address. (POP EAX, RET)
 	5. `lm m savant` -> `s ADDR_START ADDR_END 58 C3`, using `msf-nasm_shell` to determine the opcodes 58 and C3 
 	6. Input address of instruction into exploit code `inputBuffer += pack('<L', (ADDR_NO_0's))`
-	7. `bp ADDR` : and test the new exploit, stepping through to ensure there are no access violations, but there is on a later `byte ptr [edi],ch` instruction :(
+	7. `bp ADDR` : and test the new exploit, stepping through to ensure there are no access violation... but there is on a later `byte ptr [edi],ch` instruction :(
 
 ### Changing the HTTP Method
 Taking a step back, we analyze the buffer where we are returning to, our HTTP GET, with `dc esp`. GET is post padded with a bunch of nulls up to a fixed length, showing that there is extra space to work with, but also suggesting that the HTTP method is never actually checked. 
@@ -77,11 +77,11 @@ We could place a short jump in its place to get to our buffer
 - `nasm> jmp short XX` 
 - Edit GET buffer in exploit with short jump opcode
 - Set `bp`,  try the exploit, and `dc poi(@esp)` right before the return, (or just `t` through) but we realize that the jmp instruction was mangled and came in as `cb` instead of `eb`
-	- Even though we tested bad chars earlier, input can be checked and managed differently in the program depending on which section of memory you are writing to, in this case the HTTP method is checked differently
+> 	Even though we tested bad chars earlier, input can be checked and managed differently in the program depending on which section of memory you are writing to, in this case the HTTP method is checked differently
 
 ### Using Conditional Jump
-Since the traditional short jump doesn't work, lets try a conditional jump instruction. For this specific case, we'll use JE (also called JZ) which checks the ZF flag. The ZF flag is the "zero flag" and will be set to 1 on a TEST instruction (and others) if the arithmetic being checked equals 0
-- In reverse order, we need to jump if ZF is 1, test arithmetic to ensure ZF is 1, set a register to control our test. An instruction flow that matches this would be"
+Since the traditional short jump doesn't work, lets try a conditional jump instruction. For this specific case, we'll use JE (also called JZ) which checks the ZF flag. The ZF flag is the "zero flag" and will be set to 1 on a TEST instruction (and others) if the arithmetic being tested equals 0
+- In reverse order, we need to jump if ZF is 1, test arithmetic to ensure ZF is 1, set a register to control our test conditions. An instruction flow that matches this would be : 
 	- `xor ecx, ecx` : zero's out ECX (we could use any register)
 	- `test ecx, ecx` : sets the ZF to 1
 	- `je 0x15` : jumps 15 bytes if ZF
@@ -90,3 +90,9 @@ Since the traditional short jump doesn't work, lets try a conditional jump instr
 3. `bp` at the return instruction and run again, `u poi(@esp)` before the return to check if the instructions loaded correctly, and `r @zf` before the jump to ensure the condition is right
 4. Take the jump and `u @eip` to ensure we ended up in the buffer space
 5. `db @eip L100` -> `? FINAL_ROW_ADDR + LAST_CHAR_HEX_OFFSET - @eip` : which returns the amount of space for shellcode, in this case 251
+
+
+# Alternative Buffer Space
+1. Try to create new buffer space by adding another field to the HTTP request, ie. add buffer after a `/r/n` then follow it with a `/r/n/r/n`. But this breaks the exploit (doesn't crash)
+2. Try again with a buffer after the HTTP request. `... // httpEndRequest = b'\r\n\r\n' // httpEndRequest += b'IDENTIFIABLE_STRING' + b'\x42' * 1000`
+	1. This gets us to our return instruction breakpoint
