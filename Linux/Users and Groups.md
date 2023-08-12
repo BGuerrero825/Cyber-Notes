@@ -4,7 +4,7 @@
 
 Lock accounts : `usermod -L USERNAME` `passwd -l username`
 [[passwd]] 
-[[usermod]]
+[[useradd mod del]]
 
 [[_etc_sudoers]]
 [[sudo]]

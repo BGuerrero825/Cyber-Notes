@@ -2,9 +2,7 @@
   "alwaysUpdateLinks": true,
   "showLineNumber": true,
   "spellcheck": true,
-  "spellcheckLanguages": [
-    "en-US"
-  ],
+  "spellcheckLanguages": null,
   "attachmentFolderPath": "Active Directory/resources",
   "pdfExportSettings": {
     "pageSize": "Letter",
