@@ -92,23 +92,25 @@ Since the traditional short jump doesn't work, lets try a conditional jump instr
 
 # Egghunting (Finding Alternative Buffers)
 Since 251 bytes is not enough for a robust shellcode, we look into ways to extend the buffer sent to the application
-- Attempt 1, sending a large buffer in the body of the HTTP request, fails (application doesn't crash or crash changed)
-- Attempt 2, send a large buffer after the HTTP request (after a `/r/n/r/n`), this succeeds but it doesn't go into our reachable stack location
-With this buffer, we prepend an identifiable string that we can then search the program memory space with `s -a 0x0 L?80000000 babu_was_here` : this is our egg
+- Attempt 1, sending a large buffer in the body of the HTTP request (ie. add buffer after a `/r/n` then follow it with a `/r/n/r/n`.). This fails and the application doesn't crash or the crash changes.
+- Attempt 2, send a large buffer after the HTTP request (after a `/r/n/r/n`), this succeeds, but it ends up somewhere besides our controllable stack. This is workable.
+With this buffer, we prepend an identifiable string, an "egg", that we can then search the program memory space with `s -a 0x0 L?80000000 babu_was_here` 
 
 ### The Heap
 - The address returned by the egg is not in our current stack. Its on the heap, as seen with `!address ADDRESS` extension in WinDbg
 Processes can request heap space through the Windows heap manager by use of API calls like HeapAlloc, HeapFree, etc. These then call into native Windows function in `ntdll.dll`.
 All processes get a new "Default Process Heap" at start, but new heaps can be requested by the process at runtime (through the heap API or with C calls malloc / free). This implementation is called NT Heap.
-The heap is all dynamically allocated memory, so our buffer space cannot be pre-determined.
+The heap is all dynamically allocated memory, so **our buffer space cannot be determined before run time**
 
-### Egghunter: Keystone Engine
-Egghunter : a stage one payload that searches for a static string in memory, an egg, then jumps to that address.
+### Egghunter
+Egghunter : a stage one payload that searches for a static string (the egg) in Virtual Address Space (VAS), then jumps to that address.
 Egghunters must be small to fit as a stage 1, fast to prevent process hanging, and robust to handle access violations. 
 One way to build egghunter logic is to write the assembly, compile it, then open the program in IDA to get the opcodes. But this is tedious when constant corrections are needed. 
 
-Now introducing **the Keystone Engine** : an assembler framework allowing us to write assembly code in a python script (or other language) and have it compile directly to machine code.
-Install instructions here: https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-NIX.md , download source code from their website
+### Keystone Engine
+Now introducing <u><b>the Keystone Engine</b></u> : an assembler framework allowing us to write assembly code in a python script (or other language) and have it compile directly to machine code.
+Install instructions here: https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-NIX.md
+https://www.keystone-engine.org/docs/
 terminal usage: `kstool x32 "add eax, ebx"`
 python usage:
 ```
@@ -122,6 +124,7 @@ CODE = (
 ks = Ks(KS_ARCH_X86, KS_MODE_32)
 encoding, count = ks.asm(CODE)
 instructions = ""
+# \\x{0:02x} -> print '\x' literally, followed by a 0 pre-padded, 2 digit width, hex value
 for dec in encoding:
 	instructions += "\\x{0:02x}".format(int(dec)).rstrip("\n")
 print("Opcodes = (\"" + instructions + "\")")
@@ -129,10 +132,8 @@ print("Opcodes = (\"" + instructions + "\")")
 [[LESSON]] : don't name your file `keystone.py` as this is the library name...
 After producing shellcode with one of these tools, it can be verified with msf-nasm_shell
 
+
+### Egghunter Example
 `StatusAccessViolationCode` 
 `NTAccessCheckAndAUditAlarms`
 
-# Alternative Buffer Space
-1. Try to create new buffer space by adding another field to the HTTP request, ie. add buffer after a `/r/n` then follow it with a `/r/n/r/n`. But this breaks the exploit (doesn't crash)
-2. Try again with a buffer after the HTTP request. `... // httpEndRequest = b'\r\n\r\n' // httpEndRequest += b'IDENTIFIABLE_STRING' + b'\x42' * 1000`
-	1. This gets us to our return instruction breakpoint
