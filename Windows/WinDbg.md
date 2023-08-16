@@ -30,7 +30,7 @@ add `L` and number to only print X amount of bytes
 structures can be hard to decipher once compiled to binary
 `dt STRUCT` : dump structure given its name, struct needs to be provided by a loaded symbol file
 ex. `dt ntdll!_TEB` : Thread Environment Block struct
-`dt -r ntdll!_TEB @$teb` : recursively display nested structures from the $teb psuedo register (instance of struct)
+`dt -r ntdll!_TEB @$teb` : recursively display nested structures from the $teb pseudo register (instance of struct)
 `dt -r ntdll!_TEB @$teb ThreadLocalStoragePointer` : dump specific structure field only
 `?? sizeof(ntdll!_TEB)` : return size of the bytes in a struct
 
