@@ -64,3 +64,10 @@ for dec in encoding:
   
 print("egghunter = (\"" + egghunter + "\")")
 ```
+
+- loop_inc_page + loop_inc_one: avoids null bytes and goes to last memory address of a page, then increments by one to go to the first of the next page
+- loop_check: pushes values for the system call and compares return value to access violation value
+- loop_check_valid: if those values matched (address is invalid), jump back up to get next memory page
+- is_egg: if they didn't match (address is valid), load first DWORD of egg and compare with the address' value. `scasd` compares the value in EAX with the first DWORD pointed to by EDI then increments EDI by DWORD. If no match, jump back up to increment memory address, else move to compare the second word (assumes repeated DWORD egg). If no match, jump back up to increment.
+- matched: if this is reached, the egg matched, jump EIP to EDI
+> EDX is used just as a generic register to keep track of what memory location we are scanning. In this case it initially starts at a high address but with be incremented enough as to reset back to 0 and scan from the top of memory

