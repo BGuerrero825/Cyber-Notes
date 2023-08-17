@@ -134,6 +134,5 @@ After producing shellcode with one of these tools, it can be verified with msf-n
 
 
 ### Egghunter Example
-`StatusAccessViolationCode` 
-`NTAccessCheckAndAUditAlarms`
-
+`NTAccessCheckAndAuditAlarms` : a Windows system call that we abuse to check for access violations and handle cleanly using native Windows kernel methods. Returns either `STATUS_ACCESS_VIOLATION` if invalid or `STATUS_NO_IMPERSONATION_TOKEN` if valid
+[[Egghunter Example]]
