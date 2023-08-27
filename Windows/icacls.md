@@ -1,6 +1,6 @@
 check and set directory/file privileges
 
-`icacls C:\WINDOW|DIRECTORY\OR\FILE.exe /grant Everyone:F`
+`icacls C:\WINDOWS_DIRECTORY\OR\FILE.exe /grant Everyone:F`
 `icacls * | findstr (M)*` - list all in dir, find all modifiable
 
 - `/grant GROUP:PERM` : 

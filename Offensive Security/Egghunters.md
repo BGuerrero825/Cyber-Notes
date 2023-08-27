@@ -145,11 +145,13 @@ Some research shows that this code is primarily a Windows 7 exploit, signifying 
 
 
 ### Debugging the Egghunter
-Syscall number changes in Windows 10, and changes in every version
-Can't just add it, there are null bytes
-Need to move in the Two's Compliment (calculated via WinDbg) then negate it `neg eax`
-Edit script egghunter
-Run and add a breakpoint at the `jmp edi`, we see that it finds the egg in memory
+Through some Googling, we see that the syscall number changed in Windows 10, and changes in every version after. https://j00ru.vexillium.org/syscalls/nt/32/
+1. Get current version of Windows (About PC shows 1709)
+	- We can't just add the new one because there are null bytes
+2. Edit the egghunter.py script to product the correct syscall
+	1. Find the Two's Compliment (calculated via WinDbg `? 0x00 - 0x01c6`) 
+	2. Then negate it with `neg eax` to get back the original value
+3. Run and add a breakpoint at the `jmp edi` to see that it finds the egg in memory
 
 ### Egghunter Shellcode
 Remember that this is a new buffer and so we need to check again for bad characters.
@@ -162,5 +164,14 @@ Since our exploit is stable without the shellcode section, we can send all the p
 5. Run Savant without the debugger, then throw the exploit script
 6. Boom, reverse shell
 
-### Shellcode Portability
-... to be continued
+# Egghunter Portability
+Because syscall numbers change, we want to find an egghunter workaround that is more portable to different versions of Windows. The option here is to create our very own SEH mechanism embedded in the egghunter, with the trade-off of increasing its size from (35 to 60 bytes).
+
+[[Egghunter SEH Example]]
+
+- `python egghunter_seh_example.py` to generate opcodes and replace them in the script.
+- Set up WinDbg and Savant, set a breakpoint `bp 00418674` and step through to follow egghunter execution
+- Once we inject the exception handler, set a breakpoint at the handler address and continue execution to see how our read at 0x00000000 is handled.
+	- But this never happens, every time we continue execution we get an access violation on the same `repe scasd` instruction...
+
+### Identifying the issue in SEH
