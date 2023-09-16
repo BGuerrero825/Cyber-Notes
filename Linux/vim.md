@@ -8,3 +8,7 @@
 	- `%` : search all lines
 	- `s` : substitute 
 	- `g` : "global", tells vi to continue searching
+- Recording via `q` + `ANY_LETTER`, quit via `q` again, replay via `@LETTER`
+- `0`: (zero) to go to beginning of line
+- `:r !TERMINAL_COMMAND` : to ‘read’ terminal output to file
+- `CTRL-R` : redo

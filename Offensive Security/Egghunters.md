@@ -109,27 +109,7 @@ One way to build egghunter logic is to write the assembly, compile it, then open
 
 ### Keystone Engine
 Now introducing <u><b>the Keystone Engine</b></u> : an assembler framework allowing us to write assembly code in a python script (or other language) and have it compile directly to machine code.
-Install instructions here: https://github.com/keystone-engine/keystone/blob/master/docs/COMPILE-NIX.md
-https://www.keystone-engine.org/docs/
-terminal usage: `kstool x32 "add eax, ebx"`
-python usage:
-```
-from keystone import *
-CODE = (
-	"start:
-		xor eax, eax;
-		...
-		pop esi;"
-)
-ks = Ks(KS_ARCH_X86, KS_MODE_32)
-encoding, count = ks.asm(CODE)
-instructions = ""
-# \\x{0:02x} -> print '\x' literally, followed by a 0 pre-padded, 2 digit width, hex value
-for dec in encoding:
-	instructions += "\\x{0:02x}".format(int(dec)).rstrip("\n")
-print("Opcodes = (\"" + instructions + "\")")
-```
-[[LESSON]] : don't name your file `keystone.py` as this is the library name...
+[[Keystone Engine]]
 After producing shellcode with one of these tools, it can be verified with msf-nasm_shell
 
 

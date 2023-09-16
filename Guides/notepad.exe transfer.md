@@ -22,6 +22,6 @@
 		l = f.read(1024)
 	s.close()
 	```
-	5. Back on Linux, `vi out.txt`, delete top and bottom cert lines. Then replace all new line chars with nothing [[vi]]
+	5. Back on Linux, `vi out.txt`, delete top and bottom cert lines. Then replace all new line chars with nothing [[vim]]
 	6. Decode it with `base64 -d out.txt > notepad.exe`
 	7. yay :)
