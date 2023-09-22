@@ -1,0 +1,1 @@
+process flags (F, in ps): 1 = forked but didn't exec, 4 = user superuser privs, 5 = both
