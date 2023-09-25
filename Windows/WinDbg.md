@@ -25,13 +25,14 @@ display assembly translation of specified program code in memory
 add `L` and number to only print X amount of bytes
 `dd poi(REGISTER)` : get data from register pointer address
 `da ...` : display ASCII, 48 characters per line, stops at null byte or end of range
+`du ...` : display Unicode
 
 ### Dump Structures from Memory
 structures can be hard to decipher once compiled to binary
-`dt STRUCT` : dump structure given its name, struct needs to be provided by a loaded symbol file
+`dt STRUCT` : dump structure type given its name, struct needs to be provided by a loaded symbol file
 ex. `dt ntdll!_TEB` : Thread Environment Block struct
 `dt -r ntdll!_TEB @$teb` : recursively display nested structures from the $teb pseudo register (instance of struct)
-`dt -r ntdll!_TEB @$teb ThreadLocalStoragePointer` : dump specific structure field only
+`dt -r ntdll!_TEB @$teb ThreadLocalStoragePointer` : dump specific structure type only
 `?? sizeof(ntdll!_TEB)` : return size of the bytes in a struct
 
 ### Writing to Memory
@@ -135,3 +136,4 @@ r @$t0 # print register
 `!exchain` : extension to list the current thread exception handler chain
 narly : `.load narly` -> `!nmod` : lists all loaded modules and their memory protections (SafeSEH, GS, DEP, and ASL)
 `!address ADDRESS` : extension that shows in what section of memory a given address resides
+`!pcr` and `!prcb` : view the contents of the KPCR and KPRCB

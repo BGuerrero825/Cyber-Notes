@@ -81,6 +81,8 @@
 - ver
 
 >CRONJOBS
+- schtasks /query
+	- \Windows\System32\Tasks
 
 >IP 
 >NETWORK
@@ -93,8 +95,7 @@
 - tasklist /v
 - tasklist /svc
 - netstat -bona
-- schtasks /query
-	- \Windows\System32\Tasks
+
 - wmic process get *
 - wmic where (parentprocessid=320 and handlecount=70) get handlecount,name,processid,parentprocessid
 
@@ -105,6 +106,8 @@
 - net user NAME
 - net localgroup GROUP
 - query user
+- set
+	- wmic environment list
 
 >LOGGING
 - auditpol /get /category:*
@@ -118,6 +121,7 @@
 >REGISTRY
 - reg query HKLM /s /f RunOnce
 - reg query HKLM /s /f 1rc-server.exe /t REG_SZ
+- reg query /ROOT_KEY/KEY_PATH /v VALUE
 
 >MODIFICATION
 - dir /TC /OD
@@ -134,6 +138,8 @@
 
 
 
+
+@echo off (in a batch script)
 
 
 ## SSH

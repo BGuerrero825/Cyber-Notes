@@ -9,3 +9,11 @@ Standard disk partitioning layout where Globally Unique IDs are used to partitio
 
 **.ext4** : current version of the Linux filesystem structure
 
+[[Windows Internals]]
+COM : Component Object Model
+COM server : a .dll or .exe where COM classes are implemented
+OLE : Object Linking and Embedding
+WinRT : Windows Runtime, Windows 8+ API built from COM and legacy Windows binaries
+SLAT : Second Level Address Translation, basis for Credential Guard which enforces memory isolation in a VTL
+VTL : Virtual Trust Level, where different user and kernel modes can be isolated using a hypervisor
+
