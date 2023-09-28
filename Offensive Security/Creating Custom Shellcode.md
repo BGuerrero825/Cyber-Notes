@@ -127,21 +127,89 @@ https://bsodtutorials.wordpress.com/2021/06/14/windows-address-translation-deep-
 6. .... finish this another time
 
 # Resolving Symbols
-At this point we can find `kernel32.dll` but we will crash the program due to not properly ending the process. We need to resolve APIs exported by the module like `TerminateProcess` and `GetProcAddress` through the Export Directory Table (EAT) which is attached to each DLL.
+At this point we can find `kernel32.dll` but we will crash the program due to not properly ending the process. We need to resolve APIs exported by the module like `TerminateProcess` and before that, `GetProcAddress`. Rather than relying on the API, we can create our own "GetProcAddress" equivalent by traversing the Export Address Table (EAT) of a loaded DLL
 
-### Export Directory Table
+### Export Directory Table Method
+A method to resolve symbols from kernel32.dll and other DLLs
+> symbols : function names and their starting memory addresses.
+
+DLL's that export functions have an Export Directory Table that contains:
+- Number of exported symbols
+- Relative Virtual Address (RVA) of the export-functions array
+- RVA of the export-names array
+- RVA of the export-ordinals array
+EDT Structure
+```
+typedef struct _IMAGE_EXPORT_DIRECTORY {
+  DWORD Characteristics;
+  DWORD TimeDateStamp;
+  WORD MajorVersion;
+  WORD MinorVersion;
+  DWORD Name;
+  DWORD Base;
+  DWORD NumberOfFunctions;
+  DWORD NumberOfNames;
+  DWORD AddressOfFunctions;
+  DWORD AddressOfNames;
+  DWORD AddressOfNameOrdinals;
+}
+```
+
+To find the address of a specific function:
+1. Resolve symbol by name, looking for it in `AddressOfNames` array and noting its index "i"
+2. Use this "i" to index into `AddressOfNameOrdinals` array and noting its value as "j"
+3. Use this "j" to index into `AddressOfFunction` array, getting a function RVA
+4. Add the Relative Virtual Address to the Base (DLL) Address to get a true Virtual Memory Address: RVA + BA = VMA (Virtual Memory Address)
+
+In this example, we optimize the shellcode by using a hashing function that turns the string name we're searching for into a four byte hash allowing us to reuse the assembly for any given symbol name.
+
+Then, once the `LoadLibraryA` symbol is resolved we can load in these arbitrary modules
 
 
-# Thoughts on note structure?
-- Reference
--- Links
--- Succinct Application / Usage
---- Explanation
+### Working with the Export Names Array
+EDT contains relative addresses, but we can get the VMA using the DLL base address stored in EBX from the `find_kernel32:` section of our shellcode.
 
-- Walkthrough
--- Objective
--- Links?
--- Definitions
--- Context -> Execution -> Repeat
+shellcode.py modifications:
+```
+import ctypes, struct
+from keystone import *
 
-- Thoughts
+CODE = (
+    " start:                             "  #
+    "   int3                            ;"  #   Breakpoint for Windbg. REMOVE ME WHEN NOT DEBUGGING!!!!
+    "   mov   ebp, esp                  ;"  #
+    "   sub   esp, 0x200                ;"  #   More space to avoid stack clobber
+    "   call  find_kernel32             ;"  #
+    "   call  find_function             ;"  #
+
+    " find_kernel32:                     "  #
+    "   xor   ecx, ecx                  ;"  #   ECX = 0
+...
+...
+    " find_function:                     "  #
+    "   pushad                          ;"  #   Save all registers
+                                            #   Base address of kernel32 is in EBX from 
+                                            #   Previous step (find_kernel32)
+    "   mov   eax, [ebx+0x3c]           ;"  #   Offset to PE Signature
+    "   mov   edi, [ebx+eax+0x78]       ;"  #   Export Table Directory RVA
+    "   add   edi, ebx                  ;"  #   Export Table Directory VMA
+    "   mov   ecx, [edi+0x18]           ;"  #   NumberOfNames
+    "   mov   eax, [edi+0x20]           ;"  #   AddressOfNames RVA
+    "   add   eax, ebx                  ;"  #   AddressOfNames VMA
+    "   mov   [ebp-4], eax              ;"  #   Save AddressOfNames VMA for later
+
+    " find_function_loop:                "  #
+    "   jecxz find_function_finished    ;"  #   Jump to the end if ECX is 0
+    "   dec   ecx                       ;"  #   Decrement our names counter
+    "   mov   eax, [ebp-4]              ;"  #   Restore AddressOfNames VMA
+    "   mov   esi, [eax+ecx*4]          ;"  #   Get the RVA of the symbol name
+    "   add   esi, ebx                  ;"  #   Set ESI to the VMA of the current symbol name
+    
+    " find_function_finished:            "  #
+    "   popad                           ;"  #   Restore registers
+    "   ret                             ;"  #
+...
+```
+
+`find_function:`
+1. 
