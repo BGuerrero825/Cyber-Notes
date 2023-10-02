@@ -1,13 +1,16 @@
 # Thoughts on note structure?
-- Reference
+### Reference
 -- Links
 -- Succinct Application / Usage
 --- Explanation
 
-- Walkthrough
--- Objective
--- Links?
--- Definitions
--- Context -> Execution -> Repeat
+### Walkthrough
+- Generalized context/intent in layman's terms
+- Definitions
+- Objectives / Sections
+	- Specific context/intent, apply definitions
+	- Step by step application
 
-- Thoughts
+
+
+

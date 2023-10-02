@@ -133,7 +133,7 @@ At this point we can find `kernel32.dll` but we will crash the program due to no
 A method to resolve symbols from kernel32.dll and other DLLs
 > symbols : function names and their starting memory addresses.
 
-DLL's that export functions have an Export Directory Table that contains:
+All DLL's that export functions have an Export Directory Table that contains:
 - Number of exported symbols
 - Relative Virtual Address (RVA) of the export-functions array
 - RVA of the export-names array
@@ -169,7 +169,7 @@ Then, once the `LoadLibraryA` symbol is resolved we can load in these arbitrary 
 ### Working with the Export Names Array
 EDT contains relative addresses, but we can get the VMA using the DLL base address stored in EBX from the `find_kernel32:` section of our shellcode.
 
-shellcode.py modifications:
+shellcode.py updates:
 ```
 import ctypes, struct
 from keystone import *
@@ -211,5 +211,15 @@ CODE = (
 ...
 ```
 
+[[Portable Executable (PE)]] - see doxygen link for struct docs
 `find_function:`
-1. 
+- VMA/RVA : Virtual Memory Address/Relative Virtual Address, in this case, of the export-arrays function and the AddressOfNames list
+> ebx now stores kernel32 base, thanks to `find_kernel32:`
+1. pushad stores stack values
+2. `move eax,[ebx+0x3c]` : get PE header address stored at 0x3c offset from module base (in the PE DOS header)
+3. `mov edi,[ebx+eax+0x78]` : get the RVA of the export-functions array from offset 0x78 in the PE header (base addr + PE header RVA + offset)
+4. `add edi,ebx` : add the previous RVA to the base address to get the VMA of export-functions
+5. `mov ecx,[edi+0x18]` : get NumberOfNames (num of exported symbols, will be used as a counter to parse AddressOfNames) from offset 0x18 in VMA
+6. `mov eax,[edi+0x20]` : get RVA of AddressOfNames array from offset in export-functions
+7. `add eax,ebx` : add the AddressOfNames RVA to the base address to get VMA of AddressOfNames
+8. `mov [ebp-4],eax` : save AddressOfNames on the stack

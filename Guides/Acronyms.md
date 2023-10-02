@@ -16,4 +16,4 @@ OLE : Object Linking and Embedding
 WinRT : Windows Runtime, Windows 8+ API built from COM and legacy Windows binaries
 SLAT : Second Level Address Translation, basis for Credential Guard which enforces memory isolation in a VTL
 VTL : Virtual Trust Level, where different user and kernel modes can be isolated using a hypervisor
-PE : Portable Executable, file format for EXEs, DLLs, and object code that encapsulates data for the Windows loader
+PE : Portable Executable, file format for EXEs, DLLs, and object code that encapsulates data for the Windows loader. [[Portable Executable (PE)]]
