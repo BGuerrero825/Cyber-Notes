@@ -54,6 +54,7 @@ example: shellcode that writes a file to disk, the path needs to be supplied as 
 `r` : inspect all registers 
 `r REGISTER`
 `r ecx=41414141` : edit register
+`.formats REGISTER` : show register in different numeric formats
 
 ### Inspect Callstack
 `k` : dump callstack 

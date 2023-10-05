@@ -12,3 +12,4 @@ Process vs Program :
 Csrss.exe (environment subsystem process) loaded for each session and loads : Basesrv.dll, Winsrv.dll, Sxssrv.dll, and Csrsrv.dll
 
 
+![[win32_architecture_new1.png]]

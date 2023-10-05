@@ -1,4 +1,5 @@
 {
   "accentColor": "#f5a519",
-  "translucency": false
+  "translucency": false,
+  "baseFontSize": 16
 }
