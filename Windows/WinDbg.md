@@ -11,6 +11,7 @@ File -> Symbol FIle Path
 `C:\symbols` : a common symbol path
 Requires internet connection to download symbols for loaded modules
 `.reload` or `reload /f` to force reload of symbol paths
+`.symopt- 100` to enable resolution of unqualified symbols (symbols not mapped in the current programs memory)
 
 ### Unassemble Memory
 display assembly translation of specified program code in memory
