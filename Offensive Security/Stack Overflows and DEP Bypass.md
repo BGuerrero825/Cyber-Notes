@@ -1,6 +1,8 @@
 Requires a compatible CPU and sets the NX (non-executable) bit on sections of data, as opposed to code sections, preventing data injections from being ran.
+### DEP Theory
+nX (non-Executable bit) : Enforces DEP, can be set from /NoExecute, boot.ini, bcdedit.exe
 
-DEP Options
+DEP Options:
 OptIn : DEP enabled for system processes and custom-defined apps. Default for most client systems.
 OptOut : DEP is enabled for everything but specifically exempt apps.
 AlwaysOff
@@ -32,8 +34,7 @@ Enable WDEG on Tivoli FastBack:
 > !nmod in WinDbg will still show no DEP since it was not natively compiled with it
 
 # Return Oriented Programming
-The first DEP bypass was return-to-libc on Linux, which evolved into ROP as it is today, which also works on Windows.
-
+The first DEP bypass was return-to-libc (ret2libc) on Linux, which evolved into ROP as it is today, which also works on Windows.
 
 ### Origins of ROP
 Initially Windows DEP could be avoided just by calling `NtSetInformationProcess` through a hijacked JMP ESP and pushing the required arguments on the stack to turn it off. Later Windows used Permanent DEP where any .exe linked with the /NXCOMPAT flag is forced to OptIn with DEP, meaning DEP can't be turned off while the process is running.
@@ -50,7 +51,7 @@ Option 1: Allocate memory with VirtualAlloc and write shellcode to it
 Option 2: Write shellcode then change its memory page permissions with VirtualProtect
 Both of these function addresses will be found in the Import Address Table (IAT) of the target DLL.
 
-The API calls wil require parameters to be pushed, most can be done statically but other arguments must be calculated at runtime using more ROP gadgets.
+The API calls will require parameters to be pushed, most can be done statically but other arguments must be calculated at runtime using ROP gadgets.
 
 Option 3: Use WriteProcessMemory to patch the code section at runtime (the .text section) to inject our shellcode and jump to it later.
 
@@ -74,3 +75,28 @@ Initial set-up:
 `from pykd import *`, then run `.load pykd` and `!py C:\Tools\pykd\SCRIPT.py` from WinDbg
 
 ...
+
+### RP++
+
+
+# Bypassing DEP
+
+### Getting the Offset
+
+### Locating Gadgets
+
+### Preparing the Space
+
+### First ROP Gadget
+
+### Obtaining VirtualAlloc Address
+The VirtualAlloc call skeleton is already pushed to stack (structured properly, but with dummy values). Here we develop a ROP chain to dynamically populate its arguments.
+
+IAT - Import Address : 
+VirtualAlloc : function to allocate memory during runtime.
+
+1. Find the static address of the IAT entry containing VirtualAlloc
+
+2 3. Get the arguments stack offset for pushing in new values
+
+4. Move the IAT VirtualAlloc address onto stack
