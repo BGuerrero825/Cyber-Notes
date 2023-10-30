@@ -30,10 +30,12 @@ Find programs running on the system listening for remote connections to a networ
 # Interacting with Tivoli Storage Manager  
   
 ### Hooking the recv API  
-Put WinDbg on the FastBackServer.exe process, then run a breakpoint on incoming connections with:  
-`bp wsock32!recv`  
+Halt the program at the point in which the socket API is called to receive the incoming network packet.
+
+1. Put WinDbg on the FastBackServer.exe process, run a breakpoint on incoming connections
+	- `bp wsock32!recv`  
   
-Simple python script to send input to the socket:  
+Simple python script to send input to the socket on TCP 11460:  
 ```  
 import socket  
 import sys  
@@ -70,9 +72,9 @@ int recv(
 );  
 ```  
   
-1. `dds L5 esp` after hitting the breakpoint, we see the socket descriptor, then the char* address  
-2. the char* address space is populated once we finish the function, `pt`, then `da` that address to see the string  
-3.  eax will contain the byte length of the received string  
+2. `dds L5 esp` after hitting the breakpoint, we see the socket descriptor, then the char* address  
+3. the char* address space is populated once we finish the function, `pt`, then `da` that address to see the string  
+4.  eax will contain the byte length of the received string  
   
 ### Synchronizing WinDbg and IDA Pro  
 Transfer Tivoli FastBackServer.exe to kali box, see [[notepad.exe transfer]]  

@@ -5,7 +5,7 @@
 --- Explanation
 
 
----------------------------------------------------
+--------------
 
 ### Walkthrough
 - Generalized context/intent in layman's terms
