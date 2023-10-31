@@ -335,7 +335,7 @@ buf += bytearray([0x45]*0x2000) # 3rd buffer
   
 Trying the PoC:  
 1. `bp FastBackServer!FXCLI_OraBR_Exec_Command+0x4c7` to break at the 3rd memcpy and run the script  
-2. `dd esp L3` -> `dd 06f01c0c` -> `dd 06f01c0c + 11000` shows that a bunch of null bytes were copies (expected) follow 0x11000 bytes later by our bytearray of 45'same  
+2. `dd esp L3` -> `dd 06f01c0c` -> `dd 06f01c0c + 11000` shows that a bunch of null bytes were copies (expected) follow 0x11000 bytes later by our bytearray of 45's  
 3. `!exchain` to view the current intact exception chain, then step once  
 4. After the access violation, `!exchain` again to see that it links to invalid exception at 45454545 meaning that we overflowed the execution chain.  
 5. See the SEH Overflow block to see how to take an exploit from here.  
@@ -345,3 +345,68 @@ Trying the PoC:
 The previous vulnerability is likely exploitable, but we'll continue into `FastBackServer!FXCLI_OraBR_Exec_Command` and look for more memory corruption vulnerabilities.
 
 ### Switching Execution
+Using proper input to follow deeper into the code, we can discover new execution paths that may lead to a vulnerability. Here we locate a comparison which switches execution path based on a value from out input.
+
+1. Revert the Python code to no longer trigger an unsanitized memcpy
+
+2. Restart service and set a breakpoint before the first memcpy after the input is received
+	1. `bp FastBackServer!FXCLI_OraBR_Exec_Command+0x43b`
+3. Analyze code surrounding memcpy calls, looking for other (controllable) execution paths
+4. Notice a series of direct compares and branches based on psAgentCommand
+	- These comparison resemble a series of 'if' statements in C. They also all compare against the same DWORD in psAgentCommand and compare it to static values, signifying that this DWORD specifies an input mode or something similar. 
+	1. `cmp dword ptr [edx+0Ch], 1090h` ...
+5. Explore these execution paths to identify potential vulnerabilities
+	- The next section will do this for the 0x534 execution path
+
+Input buffer structure:
+```
+0x00       : Checksum DWORD
+0x04 -> 0x30: psAgentCommand
+  - 0x04 -> 0xC:  Not used
+  - 0x10:         Opcode
+  - 0x14:         Offset for 1st copy operation
+  - 0x18:         Size of 1st copy operation
+  - 0x1C:         Offset for 2nd copy operation
+  - 0x20:         Size of 2nd copy operation
+  - 0x24:         Offset for 3rd copy operation
+  - 0x28:         Size of 3rd copy operation
+  - 0x2C -> 0x30: Not used
+0x34 -> End:  psCommandBuffer
+  - 0x34 + offset1 -> 0x34 + offset1 + size1: 1st buffer
+  - 0x34 + offset2 -> 0x34 + offset2 + size2: 2nd buffer
+  - 0x34 + offset3 -> 0x34 + offset3 + size3: 3rd buffer
+```
+
+### 0x534 Execution Path Vulnerability
+We can control the execution path of the program by changed a single DWORD of the input buffer. Here we explore and prove that the 0x534 opcode execution path has an exploitable vulnerability.
+
+Memory Corruption - The instructions of a memory operation are abused to corrupt existing memory. memcpy, memmov, strcpy, sscanf
+Logic Vulnerability - A features functionality exposes a security risk. Command injection, exe uploads, etc.
+
+1. Update python script to specify path 0x534 and send unique input for each field / buffer
+
+2. Restart service and set breakpoint at first opcode comparison
+	1. `FXCLI_OraBR_Exec_Command+0x6ac`
+	
+3. Follow our opcode value comparison to the branch table jump
+	- Branch table: https://en.wikipedia.org/wiki/Branch_table
+	
+4. Inspect the following `FXCLI_SetConfFileChunk` function call paramters
+	- This reveals 3 buffers in our control: psAgentCommand, 1st psCommandBuffer, and the 3rd psCommandBuffer
+
+5. Step into and inspect `FXCLI_SetConfFileChunk` functionality
+	1. We see a call to `sscanf` using psCommandBuffer as the source
+
+6. Search for memory corruption vulnerability in sscanf usage
+	- https://cplusplus.com/reference/cstdio/sscanf/
+	- sscanf's format string calls for a string `"File: %s ..."` which writes to the buffer in the 3rd argument position and reads from our first psCommandBuffer section
+	1. `dd esp L7` : to check 3rd pushed argument, the destination buffer
+	2. `!teb` : to check stack limits, ensuring the destination buffer is on the stack
+	3. `k`, Ex:`? 0dafe318 - 0dafe204` : check callstack to nearest return address, this cannot be more than 0x43CC bytes away (0x4400 packet size - psAgentCommand = psCommandBuffer input size)
+	- The return address turns out to only be 0x114 byes away
+	
+7. Edit python script to send a psCommandBuffer that corrupts the nearest return address
+	- This uses the python format string operator % to specify a string of 0x200 A's to the string "File:" field of the input string
+	2. `k` : Analyze the callstack to ensure that the return address was overwritten
+	
+8. Use EIP control to create a custom exploit.

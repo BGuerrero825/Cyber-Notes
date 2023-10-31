@@ -63,7 +63,9 @@ Finding ROPs manually (like with WinDbg search) would be very tedious, luckily t
 - Mona (not covered because it doesn't support Python3 or 64-bit)
 
 ### Debugger Automation: Pykd
-A Python based WinDbg extension with APIs to automate debugging and crash analysis. Makes finding ROP gadgets a lot easier with the below script.
+A Python based WinDbg extension with APIs to automate debugging and crash analysis. Makes finding ROP gadgets a lot easier with the below script that runs within the debugger.
+
+Link to the script HERE <-------
 
 High level logic:
 1. Accept the name of a module (application) and find it in memory
@@ -77,15 +79,56 @@ Initial set-up:
 ...
 
 ### RP++
+https://github.com/0vercl0k/rp
+CLI ROP searching tool. Runs way faster.
+
+1. (Located in C:\tools\dep on student VM), copy target .exe to the rp++ folder.
+2. Run rp++ with `rp-win-x86.exe -f FastBackServer.exe -r 5 > rop.txt`. Where `-r` is the gadget (not byte) length from the return.
+3. Search for desired instructions ex. `: pop eax ; ret"
 
 
 # Bypassing DEP
+Exploit recap: we are sending a packet to TCP port 11460 with opcode 0x534 and a large "File" input to be parsed by sscanf.
 
 ### Getting the Offset
+1. Get the offset into sscanf "File" where eip is overwritten
+	1. `msf-pattern_create -l 0x200`
+	2. Edit python script with this string
+	3. Run script and get eip value at access violation
+	4. `msf-pattern_offset -q VALUE` to get offset to eip
+	5. Do the same for esp to determine if we need padding between the eip control of the input buffer and the rop chain.
+	- The offsets in the example are 276 and 280, meaning they are back to back and don't require padding
+2. Check for bad input characters (use techniques from previous sections)
+	- Bad chars: 0x00, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20
 
 ### Locating Gadgets
+> I think there's an error in the OffSec material, sscanf is NOT looking for a null terminator to delineate its parameters. It uses whitespace and from there each non-whitespace string of characters is allocated to the respective optional argument buffer. We still can't use the FastBackServer module because it starts with 0x00 and it would require a null-byte to be input, which as we established is a bad character that will stop input for the buffer as a whole.
+
+- The FastBackServer module cannot be used as it begins with a null-byte
+1. Find an alternative module loaded into the application
+	- `lm` turns up CSFTPAV6.dll (among others)
+2. Move CSFTPAV6.dll to the rp++ directory 
+3. Run rp++ on this dll to ensure addresses returned are reachable
 
 ### Preparing the Space
+
+VirtualAlloc: reserve, commit, or change a region of pages' state in virtual address space. 
+https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
+```
+LPVOID WINAPI VirtualAlloc(
+   _In_opt_ LPVOID lpAddress,
+   _In_     SIZE_T dwSize,
+   _In_     DWORD  flAllocationType,
+   _In_     DWORD  flProtect
+ );
+ ```
+ - if lpAddress points to a commited memory page (already allocated) then flProtect will specify the new protections for that page. This is the same functionality of VirtualProtect
+ - dwSize specifies the memory region size, but VirtualAlloc can only change protections on one page per call, so as long as this value is less then 1 page, 0x100 bytes, we are good.
+ -  flAllocationType is a predefined enum and must be set to the MEM_COMMIT (0x00001000)
+ - flProtect must be set to PAGE_EXECUTE_READWRITE (0x00000040)
+ 
+ ... push skeleton onto
+
 
 ### First ROP Gadget
 
