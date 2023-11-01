@@ -1,5 +1,9 @@
-Requires a compatible CPU and sets the NX (non-executable) bit on sections of data, as opposed to code sections, preventing data injections from being ran.
-### DEP Theory
+---
+
+---
+# DEP Theory
+DEP requires a compatible CPU and sets the NX (non-executable) bit on sections of .data, as opposed to .code/.text sections, preventing data injections from being ran.
+
 nX (non-Executable bit) : Enforces DEP, can be set from /NoExecute, boot.ini, bcdedit.exe
 
 DEP Options:
@@ -33,6 +37,8 @@ Enable WDEG on Tivoli FastBack:
 8. Repeating above Notepad Demo on FastBack should give an access violation
 > !nmod in WinDbg will still show no DEP since it was not natively compiled with it
 
+
+---
 # Return Oriented Programming
 The first DEP bypass was return-to-libc (ret2libc) on Linux, which evolved into ROP as it is today, which also works on Windows.
 
@@ -56,6 +62,7 @@ The API calls will require parameters to be pushed, most can be done statically 
 Option 3: Use WriteProcessMemory to patch the code section at runtime (the .text section) to inject our shellcode and jump to it later.
 
 
+---
 # Gadget Selection
 Finding ROPs manually (like with WinDbg search) would be very tedious, luckily there are automated tools for this.
 - Pykd WinDbg Extension
@@ -87,11 +94,12 @@ CLI ROP searching tool. Runs way faster.
 3. Search for desired instructions ex. `: pop eax ; ret"
 
 
+---
 # Bypassing DEP
 Exploit recap: we are sending a packet to TCP port 11460 with opcode 0x534 and a large "File" input to be parsed by sscanf.
 
 ### Getting the Offset
-1. Get the offset into sscanf "File" where eip is overwritten
+1. Get the offset into sscanf "File" field where eip is overwritten
 	1. `msf-pattern_create -l 0x200`
 	2. Edit python script with this string
 	3. Run script and get eip value at access violation
@@ -102,18 +110,17 @@ Exploit recap: we are sending a packet to TCP port 11460 with opcode 0x534 and a
 	- Bad chars: 0x00, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20
 
 ### Locating Gadgets
-> I think there's an error in the OffSec material, sscanf is NOT looking for a null terminator to delineate its parameters. It uses whitespace and from there each non-whitespace string of characters is allocated to the respective optional argument buffer. We still can't use the FastBackServer module because it starts with 0x00 and it would require a null-byte to be input, which as we established is a bad character that will stop input for the buffer as a whole.
+> Error in the OffSec material: sscanf is NOT looking for a null terminator to delineate its parameters. It uses whitespace and from there each non-whitespace string of characters is allocated to the respective optional argument buffer provided. We still can't use the FastBackServer module because it starts with 0x00 and it would require a null-byte to be input, which as we established is a bad character that will stop input for the buffer as a whole.
 
 - The FastBackServer module cannot be used as it begins with a null-byte
 1. Find an alternative module loaded into the application
 	- `lm` turns up CSFTPAV6.dll (among others)
-2. Move CSFTPAV6.dll to the rp++ directory 
+2. Copy CSFTPAV6.dll to the rp++ directory 
 3. Run rp++ on this dll to ensure addresses returned are reachable
 
 ### Preparing the Space
-
-VirtualAlloc: reserve, commit, or change a region of pages' state in virtual address space. 
-https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
+Push a placeholder (skeleton) system call to VirtualAlloc on the stack, including the eventual return address to our shellcode and the address of VirtualAlloc itself
+[VirtualAlloc](https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc): reserve, commit, or change a region of pages' state in virtual address space. 
 ```
 LPVOID WINAPI VirtualAlloc(
    _In_opt_ LPVOID lpAddress,
@@ -124,22 +131,81 @@ LPVOID WINAPI VirtualAlloc(
  ```
  - if lpAddress points to a commited memory page (already allocated) then flProtect will specify the new protections for that page. This is the same functionality of VirtualProtect
  - dwSize specifies the memory region size, but VirtualAlloc can only change protections on one page per call, so as long as this value is less then 1 page, 0x100 bytes, we are good.
- -  flAllocationType is a predefined enum and must be set to the MEM_COMMIT (0x00001000)
- - flProtect must be set to PAGE_EXECUTE_READWRITE (0x00000040)
+ - flAllocationType is a predefined enum and should be set to the MEM_COMMIT (0x00001000)
+ - flProtect should be set to PAGE_EXECUTE_READWRITE (0x00000040)
  
- ... push skeleton onto
+1. Logically configure skeleton call on the stack
+	```
+	0d2be300 75f5ab90 -> KERNEL32!VirtualAllocStub
+	0d2be304 0d2be488 -> Return address (Shellcode on the stack)
+	0d2be308 0d2be488 -> lpAddress (Shellcode on the stack)
+	0d2be30c 00000001 -> dwSize
+	0d2be310 00001000 -> flAllocationType
+	0d2be314 00000040 -> flProtect
+	```
+	- We don't know the values of VirtualAlloc or the shellcode yet, so we can use dummy values here
+2. Edit python script to input the above stack values
+	- ....
+	
+3. Run script against FastBackServer to make sure it works
+	1. `dd esp - 1C` after the access violation (eip of 42424242) to ensure expected values are pushed on the stack before the eip value
+	2. Notice that some of the values were zero'd out before we got the access violation. This isn't a problem because they are dummy values that can be overwritten again with ROP gadgets before our VirtualAlloc call.
 
+### Initial ROP Gadget
+Use an intial ROP gadget, pointed to by our inital eip overflow, to store esp's current value into another register for use as a pointer to our overflowed values on the stack.
 
-### First ROP Gadget
+1. Use rp++ to search for a gadget that will copy esp's current value
+	1. `mov eax, esp ; ret` is ideal but not likely, find something with similar functionality. Ex. `push esp ; push eax ; pop edi ; pop esi ; ret`
+2. Replace value of eip in the python script with this gadget address
+3. Verify gadget works and copies esp value to another register
+	1. `bp GADGET_ADDR`
+	2. step through, `dd esp L1`, ensure new reg matches esp
+- Notice that after the gadget, the next address returned into eip is the next value on this stack, this is what allows us to ROP chain
+
 
 ### Obtaining VirtualAlloc Address
-The VirtualAlloc call skeleton is already pushed to stack (structured properly, but with dummy values). Here we develop a ROP chain to dynamically populate its arguments.
+The VirtualAlloc call skeleton is pushed to stack (structured properly, but with dummy values). Develop a ROP chain to dynamically populate it with proper arguments, starting here by finding the runtime address of the VirtualAlloc function. This will then be written to the top of the stack as per our skeleton layout.
 
-IAT - Import Address : 
+IAT - Import Address Table : table created per module that contains the addresses of all API's that are implemented by the current module.
 VirtualAlloc : function to allocate memory during runtime.
 
-1. Find the static address of the IAT entry containing VirtualAlloc
+1. Find the static address of the IAT entry containing VirtualAlloc's address with IDA
 
-2 3. Get the arguments stack offset for pushing in new values
+2. Get the stack address of the value we need to overwrite
+	1. `dd esp - 1c` to view pushed dummy values. The VirtualAlloc needs to go at the top stack position at -0x1c
+	2. rp++: search for `sub esi, 0x1c ; retn` since esi contains our esp copy. This doesnt exist, so look instead to using the stack to push a value and then doing step by step arithmetic from there to calculate the value in an arithmetic register (eax/ecx)
+	- If the ROP chain includes extraneous pop's then we need to add dummy values to the stack
+	4. Add these gadget locations into the python script `rop += pack("<L", (ADDR))`
+	5. Step through the gadgets to confirm it worked. (eax/ecx should contain esp - 0x1c)
+	6. Find another gadget to `pop eax ; push esi`, add to python script, and verify
 
-4. Move the IAT VirtualAlloc address onto stack
+3. Resolve the runtime address of VirtualAlloc
+	1. IAT address of VirtualAlloc contains a bad char, so push a higher or lower value onto stack and find gadgets to dec/inc it back.
+	2. Dereference the VirtualAlloc address with a `mov eax, dword [eax]` instruction
+	3. Edit script, and run to verify
+
+4. Overwrite the VirtualAlloc value on the stack
+	1. Move the value in eax to the address pointed to by esi with a `mov dword [esi], eax`
+	2. Edit script and verify. Use `dds esi L1` and verify that it resolves to `KERNEL32!VirtualAllocStub`
+	
+
+### Pushing a Return Address
+The next value on the stack we need is a return address to our future shellcode after VirtualAlloc executes. This will be written to the 2nd position on the stack as per the skeleton layout.
+
+1. Align esi to stack placeholder address
+	1. Find similar functionality to `add esi, 0x4` since esi currently points to the address just above what we need.
+	2. Edit script and verify `dd esi L1` to ensure esi points to the next placeholder value.
+
+2. Overwrite the shellcode address on the stack with a (for now) fixed value
+	- We don't know our exact shellcode location yet as this is what's returned by VirtualAlloc
+	1. Ideal chain to find: `move eax, esi`, `pop ecx` (where static offset is the popped on stack), and `sub eax, ecx`. `We simulate a shellcode address by calculating a static offset position from edi into eax. We can later change this offset when we get the actual address. 
+	2. Find a `mov dword [esi], eax` to copy this value onto the stack
+	3. Edit script and verify `dd poi(esi) L4` to ensure stack location points to the specified offset at the end of this gadget.
+	
+	
+### Pushing Arguments
+Push the arguments required by VirtualAlloc to the next 4 stack positions in the skeleton. These being:
+lpAddress: shellcode address
+dwSize: 0x01
+flAllocationType: 0x1000
+flProtect: 0x40
