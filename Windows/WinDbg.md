@@ -47,6 +47,7 @@ example: shellcode that writes a file to disk, the path needs to be supplied as 
 ### Searching Memory Space
 `s...` : search memory
 `s -d 0 L?80000000 41414141` : search for dword 41414141, searching from 0 and through all memory ?80000000 (entire process memory space)
+- where ? allows searches longer than 256MB
 `s -a 0 L?80000000 "This program cannot be run in DOS mode"` : search program for ascii string
 `-b|w|d|q|a|u` : print as bytes (default), word, dword, qword, ASCII, or unicode
 `-[1]...` : Only show address of search matches. Use in a .foreach where output is piped
