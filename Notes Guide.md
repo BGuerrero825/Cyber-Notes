@@ -1,20 +1,27 @@
-# Thoughts on note structure?
-### Reference
--- Links
--- Succinct Application / Usage
---- Explanation
+# Reference Notes
+Don't repeat man pages or easy google look-ups.
+Make or add to Reference notes when the info is:
+- Hard to find
+- Not well understood (so I can iterate on it later)
+- Helpful to avoiding pitfalls / anti-patterns
 
+### Reference
+- Example usages
+	- Explanations
+- Notes / thoughts on this topic
+- Links
 
 --------------
 
-### Walkthrough
+# Walkthrough Notes
 - Generalized context/intent in layman's terms
 - Definitions
 - Objectives / Sections
 	- Specific context/intent, apply definitions
 	- Step by step application
 
-Example below.
+Example below:
+
 
 # Topic
 
@@ -26,13 +33,11 @@ Definitions
 
 1. High level step in plain english
 	1. Technical action
-	- Substantiating comments
-2. 
+	- Helpful information
+2. ...
 
 
-
-
-Process:
+### OffSec Process:
 
 Watch Videos: take high level notes to compartmentalize info. Fill in Topic, Goal, Desired End State, Definitions and High level steps.
 

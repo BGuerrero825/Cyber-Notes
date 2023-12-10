@@ -1,3 +1,8 @@
+[[#Installation and Enumeration]]
+[[#Interacting with Tivoli Storage Manager]]
+[[#Reverse Engineering the Protocol]]
+[[#Digging Deeper for More Bugs]]
+
 An exploit can't exist without first discovering a vulnerability.  
   
 Reverse engineering: installing the target app and enumerating ways to feed input, reversing the code or binary segments that parse input (examining file formats and network protocols), and finding logical vulnerabilities or memory corruptions in these segments.  
@@ -312,6 +317,7 @@ BUT WAIT!
   
 Because this buffer is so large and we are overwriting a lot of stack space on top of where the return address is located, we are likely to cause some other memory error before our manipulated byte is read by the return instruction.  
 As a result, we can intentionally cause an access violation and send and even larger buffer to take advantage of an SEH overflow.  
+[[Exploiting SEH Overflows]]
   
 Python script edits for SEH Overflow:  
 ```  
@@ -409,4 +415,4 @@ Logic Vulnerability - A features functionality exposes a security risk. Command 
 7. Edit python script to send a psCommandBuffer that corrupts the nearest return address
 	- This uses the python format string operator % to specify a string of 0x200 A's to the string "File:" field of the input string
 	2. `k` : Analyze the callstack to ensure that the return address was overwritten
-8. Use EIP control to create a custom exploit.
+8. Use EIP control to create a custom exploit. 
