@@ -51,6 +51,6 @@ Tracing the code flow of notepad.exe opening a text file
 	- Use the landing address to find the matching code in IDA with `g` (assuming it is rebased to the WinDbg session)
 - Get file text from ReadFile call
 	- (IDA) find consequent call to ReadFile API, we see a preceding argument lpBuffer which receives the data from the read file
-	- `bp READFILE_AADR` -> `g` : continue to ReadFile call
+	- `bp READFILE_ADDR` -> `g` : continue to ReadFile call
 	- `dds esp L5` : find the address pushed to the stack as lpBuffer (pushed first, so 2nd one down)
 	- `p` : to step over ReadFile call -> `da LPBUFFER_ADDR` : to get file contents

@@ -64,7 +64,7 @@
 - less /proc/modules
 
 >IPTABLES
-- sudo [/usr]/sbin/iptables -t TABLE -L -v -n
+- sudo /usr/sbin/iptables -t TABLE -L -v -n
 
 
 

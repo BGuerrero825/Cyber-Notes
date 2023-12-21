@@ -11,9 +11,19 @@ Entropy: the amount of bits randomized when a base address is chosen. Generally 
 
 ### ASLR Bypass Theory
 
-Bypass Methods:
-- Find modules compiled without ASLR
-- Exploit low entropy
-- Using a partial override of the lower bits (which aren't randomized) to jump to gadget in the current DLL (whos randomized address is not overwritten).
-- Brute Force base addresses
-- Leverage an Information Leak
+There are multiple ways to counter a module protected by ASLR.
+
+Modules Compiled without ASLR:
+- Use WinDbg `narly`
+Check for /DYNAMICBASE, narly looking for `*ASLR`
+
+Exploit Low Entropy:
+- Lower 16 bits of a module are not randomized, so a partial override into the lower bits of an ASLR module will still redirect reliably 
+
+Brute Force:
+- Realistic in 32-bit where only 8-bits of entropy are provided, app must not crash on invalid ROPs (or auto-restarts after crash)
+
+Information Leaks:
+- Leverages a feature (or another exploit) which gives information about a modules address space.
+- This is the most modern and practical methodology
+
