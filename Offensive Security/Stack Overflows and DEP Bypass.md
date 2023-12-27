@@ -13,8 +13,10 @@
 	[[#Pushing a Return Address]]
 	[[#Executing VirtualAlloc]]
 	[[#Getting a Reverse Shell]]
-# DEP Theory
 
+ 
+---
+# DEP Theory
 DEP requires a compatible CPU and sets the NX (non-executable) bit on sections of .data, as opposed to .code/.text sections, preventing data injections from being ran.
 
 nX (non-Executable bit) : Enforces DEP, can be set from /NoExecute, boot.ini, bcdedit.exe
