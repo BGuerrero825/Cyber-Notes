@@ -6,6 +6,7 @@
  
 ---
 # ASLR Introduction
+
 Compilers on Windows take a *preferred base* address parameter which sets a base memory addresses of an executable when loaded. 
 
 `/REBASE`: compiler flag that allow DLLs to rebase to a different base address within a process if there is a conflict with another DLL.
@@ -75,8 +76,110 @@ Craft Input to reach `SymGetSymFromName` call:
 	- The values are pointers, dumping the 2nd shows a list of A's meaning it points to the input network buffer
 
 ### Arbitrary Symbol Resolution
+step into debug dispatch to find path to the basic block we need
+lots of branching paths
+theres a repeating pattern in the leading blocks
+	a call to strbytelen (wraps strlen) and strnicmp (strcmp)
+the first block checks length and compares against "help"
+set a bp on strnicmp
+dd esp L3 the args
+2nd arg is "help"
+3rd arg (max size) is 4
+1st arg is pointer to buff of A's
+since the first 4 chars of the A's dont match "help", the function returns a non-z value and a branch is taken to a new cmp
+new cmp is the same but with "DumpMemoryPools"
+skipping to block just above we see the same cmp's but with "SymbolOperation"
+update POC with psCommandBuffer beginning with "SymbolOperation"
+- set new bp on the string compare call for the string above
+- breakpoint triggered
+- da poi(esp) shows our string whihc passes the check
+- bp on symgetsymfromname
+- The desired branch is taken, and the call is reached
+- PROTOYPE for SymGetSymFromName
+	- HANDLE  hProcess,
+	- PCSTR Name : pointer to symbol name to be resolved as a null terminated string
+	- IMAGEHLP_SYMBOL Symbol
+ - value of Name in the current POC is the string A's
+ - Symbol is a pointer to a struct that is populated by the SymGetSym
+ - We specifically want to get the Address field of this populated struct
+	 - This gives the base address of the specified symbol Name
+ - Update script to look for address of WriteProcessMemory, `buf += b'SymbolOperationWriteProcessMemory'`
+ - bp at DebugDispatch call, run script
+ - `da poi(esp+4)` shows WriteProcessMemory, our input
+ - `dd esp+8 L1` -> `dds PREV+4 L1` shows 0000's where the returned address will go
+ - `p` to step over the API call
+- `dds PREV+4 L1` shows address of WriteProcessMemory !!
+- Now we just need a way to retrieve this info over the network
 
+### Symbol Address Retrieval
+- It makes sense that this functionality is intended to return some info back to the user
+- Continue reversing to find a code path that returns the SymGetSym info
+- D: Inspect return val of SymGetSym as this affects the branch path
+- `pt` to see return logic
+- S: the next block performs a bunch of string manipulations
+- the output from the sprintf calls are stored at an offset from ebp
+- interested in the final string,
+- find value of arg_0 (which is the offset from ebp used) up in the function declaration
+- D: `dd ebp+8 L1` shows a pointer the string about to be manipulated
+- bp at the end of this function
+- `da PREV` shows the new content of the string pointer, which has the requested function address and other debug info
+- After this, we drop back into Exec_Command from DebugDispatch
+- there is cmp check for eax (return value of DebugDispatch) in which the jump is not taken (eax = 1)
+- S: next block is a mass converge of many conditionals, continue dynamic exec until this point (D: vs S: for dynamic vs static analysis)
+- D+S: We dont control the values in these checks, just follow the cmps and jumps and analyze whats happening
+- S: stop when seeing a call to GetConnectedIpPort
+- There are `lea` instructions just before the call, which usually signifies that a pointer to a previous call's return value is being loaded (and then being passed as an arg to this call)
+- D: bp at the call to IpPort
+- dump memory of the two addresses before the call `dd ebp-12550 L1` and `dd ebp-61bc L1`
+- `p` then dump memory after the call, see above step. They are now populated
+- What are these values and how do we interpret them? 
+- Guessing from the call function name `GetConnectedIpPort` we can assume some association to a socket connection, which usually uses win socket `connect`
+	- PROTOTYPE for WSAAPI connect
+	- theres a sockaddr substructure referred to by `*name` 
+	- PROTOTYPE for sockaddr_in
+	- sockaddr_in's ip address is an 'in_addr' struct and its port is an u_short (unsigned word)
+	- each octet of the IP address is a single byte of the (2nd) dword returned by GetConnectedIpPort
+- translate 0276a8c0 to IP with `? c0; ? a8; ? 76; ? 02;`
+- translate 000032cc to decimal `? 32cc`
+- open cmd as admin, run netstat -anbp tcp to see current tcp connections and find the above network connection
+- D+S: Following the flow we eventually see a block with a call to IF_Buffer_Send
+- bp on IF_Buffer_Send
+- dump contents of function arg with da poi(esp)
+- the debug string with WriteProcessMemory's address is the passed arg :)
+- Skip inspecting this function and modify script and see if we can catch this data
+- `response = s.recv(1024) // print(response)
+- Run the script and catch the address for WriteProcessMemory
+- Update script to parse for "Address is" and only print the address value, for easy passing into future script functionality, create case for null as well
+	- `def parse_response(response): ...`
+	- `response_address = parse_response(response) // print(str(hex(response_address)))`
+- And make sure that works
 
 
 --- 
 # Expanding the Exploit (ASLR Bypass)
+
+Previously we were able to retrieve an address to `WriteProcessMemory` which also gave a pointer to `kernel32.dll`. However, every monthly Windows update will change the offsets of symbols within this module, breaking any ROP gadgets used by the exploit. To make this exploit more resilient, we can leak the baked in IBM modules instead and build ROP gadgets from those, meaning that the exploit will only be dependent on the version of FastBackServer (vs the version of Windows)
+
+### Leaking an IBM Module
+
+### Avoiding Bad Characters
+
+
+--- 
+# WriteProcessMemory DEP Bypass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
