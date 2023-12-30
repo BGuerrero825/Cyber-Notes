@@ -161,15 +161,38 @@ update POC with psCommandBuffer beginning with "SymbolOperation"
 Previously we were able to retrieve an address to `WriteProcessMemory` which also gave a pointer to `kernel32.dll`. However, every monthly Windows update will change the offsets of symbols within this module, breaking any ROP gadgets used by the exploit. To make this exploit more resilient, we can leak the baked in IBM modules instead and build ROP gadgets from those, meaning that the exploit will only be dependent on the version of FastBackServer (vs the version of Windows)
 
 ### Leaking an IBM Module
+List loaded IBM modules and their locations. From there select a suitable module to pass to the information leak vulnerability to determine its runtime address and start building the ROP chain.
 
+- D: `lm f`, shows 10 IBM modules + the FastBackServer exe
+- Can't use any that start with 0x00
+- Arbitrarily chose `libeay32IBM2019.dll`
+- Find filepath and transfer .dll file to Kali box for IDA analysis
+- S: Go to export table, take arbitrary function and find its offset from the base address of the module
+	- In this case `N98E_CRYPTO_get_net_lockid`
+ - Run the script looking for this symbol: `symbol = b"SYMBOL" + b"\x00 // buf += symbol + ... // #way later // libeay32IBM019_base = response_address - 0x14E0`
+- Run script and ensure it gets the base address
 ### Avoiding Bad Characters
+The previous list of bad characters found in the DEP exploit still apply here, and there is a bad one in the return base address. Use ProcMon to verify that the FastBack WatchDog is restarting the FastBackServer after a crash. Then, rerun the script to get the new base address after being randomized by ASLR and check if it still contains a bad character.
 
+ProcMon : Process Monitor
+
+- Bad chars: 0x00, 0x09, 0x0a, 0x0c, 0x0d, 0x20
+- We are leveraging the same scanf vulnerability so the bad chars still apply
+- If the returned base address has a bad char we cant use it
+- FastBack WatchDog should restart FastBack on crash
+- Run ProcMon.exe as admin, which can monitor process creation
+	- Filter > Filter
+	- Filter Rule: Operation | contains | Process // for Process Start and Process Exit
+	- Add > Apply
+- Create a crash by attaching WinDbg then closing WinDbg
+- Watch the process restart then rerun the script to get a new base address
+- If no bad char then its good to go, otherwise repeat process
+  
 
 --- 
 # WriteProcessMemory DEP Bypass
 
-
-
+In the previous DEP bypass VirtualAlloc was used to modify the protections of the stack where the shellcode lives. Here a new technique is used via WriteProcessMemory to copy our shellcode from the stack into an allocated module's code page. Specifically, copy the shellcode into `libeay32IBM019` which is already executable. Typically a code page is not writeable, but WriteProcessMemory will take care of this.
 
 
 
