@@ -222,12 +222,12 @@ The next value on the stack we need is a return address to our future shellcode 
 	2. Edit script and verify `dd esi L1` to ensure esi points to the next placeholder value.
 
 2. Overwrite the shellcode address on the stack with a (for now) fixed value
-	- We don't know our exact shellcode location yet as this is what's returned by VirtualAlloc
-	1. Ideal chain to find: `move eax, esi`, `pop ecx` (where static offset is the popped on stack), and `sub eax, ecx`. We simulate a shellcode address by calculating a static offset position from edi into eax. We can later change this offset when we get the actual address. 
+	- We don't know our exact shellcode offset yet because we will allocate it at the end of our rop chain, of which we don't know the length of until we finish building it. For now, add a placeholder offset.
+	1. Ideal chain to find: `move eax, esi`, `pop ecx` (where static offset is then popped on stack), and `sub eax, ecx`. We simulate a shellcode address by calculating a static offset position from edi into eax. We can later change this offset when we get the actual address. 
 	2. Find a `mov dword [esi], eax` to copy this value onto the stack
 	3. Edit script and verify `dd poi(esi) L4` to ensure stack location points to the specified offset at the end of this gadget.
-	
-	
+
+
 ### Pushing Arguments
 Push the arguments required by VirtualAlloc to the next 4 stack positions in the skeleton. These being: lpAddress: shellcode address
 dwSize: 0x01
