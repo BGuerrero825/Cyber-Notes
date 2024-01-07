@@ -17,7 +17,7 @@ Native DLLs for the basic SYSTEM processes are loaded, randomized, and deconflic
 Any further DLLs needed by an exe are loaded, randomized, and deconflicted, but a previously loaded SYSTEM DLLs retain their initial base addresses.
 
 32-bit ASLR with standard entropy only randomizes 8 bits of an address
-STATIC      | RANDOM | STATIC
+STATIC      | RANDOM | STATIC 
 00000000 | 11111111 | 00000000 00000000
 Entropy: the amount of bits randomized when a base address is chosen. Generally the high 8 bits and low 16 bits remain static.
 64-bit ASLR randomizes up to 19 bits
@@ -205,7 +205,50 @@ BOOL WriteProcessMemory(
 )
 ```
 - hProcess is a handle to the desired process, in this case -1 will get the current process. The intent is to perform a copy operations in the current process
-- 
+- lpBaseAddress is the absolute memory address in the code section where the new code will be written. The exploit should avoid overwriting existing code.
+	- Compiled code is page-aligned. When the opcodes don't use up the whole page the rest of the page will be nulled (0x00's). This can be used to find where the "code cave" (space for the new injected code) begins
+
+- D: Attach to FastBack, pause exec
+- Offset to PE header is located at offset 0x3C from the MZ header
+	- [[Portable Executable (PE)]]
+	- dd libeay32IBM019 + 3c L1
+	- PE Header Offset: 00000108
+- Offset to code section is 0x2C from PE Header
+	- dd libeay32IBM019 +0x108 + 2c
+	- Code Segment Offset: 00001000 (from base addr)
+- ? libeay32IBM019 + 1000 = 031c1000
+- !address 032c1000
+- see End Address: 03250300
+- subtract an arbitrary large space (400) from End Address to determine if theres space to write a shellcode in the code cave
+- see a bunch of 00's? Then this is unused space we can use
+- Protections are still PAGE_EXECUTE_READ
+- Find the offset into the module where the code cave starts
+	- 03253000 - 400 - libeay32IBM019 = 00092c00
+	- this has a null byte, but we can just use 092c04 instead
+- So lpBaseAddress will be libeay32IBM019 + 092c04
+
+- lpBuffer is the source of the write, so it must take the stack address of the overflowed shellcode
+- nSize is the size of the shellcode
+- `*lpNumberOfBytesWritten` is a location where the function will report the number of bytes written 
+	- Use an address in the data section of `libeay32IBM019` since it wont have to be gathered at runtime
+- !dh -a libeay32IBM019, to dump data section and header info
+	- Look for: SECTION HEADER #4 // .data name // F018 virtual size // D5000 virtual address
+	- size is 0xf018 and offset is 0x5000
+- Again, this is page aligned and any unused space is nulled, so find the "data cave" using the previous info
+- ? libeay32IBM019 + d5000 + f018 + 4 = 032a401c
+- dd 032a401c, shows a bunch of null bytes
+- !vprot ADDR, shows the section is set as PAGE_READWRITE
+- ? ADDR - libeay32IBM019, shows offset of data writeable section from base address
+
+Make the API call with ROP
+- Set up the python script to the point where it triggers the scanf buffer overflow
+- ROP Skeleton for WriteProcessMemory goes in psCommandBuffer (PUT CODE HERE)
+	- WriteProcessMemory address is known (will be pointed to by the eip overwrite)
+	- shellcode return address (rop chain returns here)
+	- (start args) Handle is -1
+	- base address is module + code cave offset
+	- buffer (from) address is not know yet
+	- 
 
 
 

@@ -1,3 +1,7 @@
+Structure docs:
+https://doxygen.reactos.org/d5/db1/dll_2win32_2dbghelp_2compat_8h_source.html#l00145
+https://www.aldeid.com/wiki/PE-Portable-executable
+
 PE structures:
 `_IMAGE_DOS_HEADER` : address of the base of any PE
 `e_lfanew` : Decimal value offset to PE File Header
@@ -13,10 +17,6 @@ File pointer: location of an item in the file prior to being processed by a link
 Section: code or data portion that must be loaded contiguously.
 
 PE file = MS-DOS MZ header + stub program + PE file signature + PE file header + the PE optional header + all of the section headers + all of the section bodies.
-
-Structures:
-https://doxygen.reactos.org/d5/db1/dll_2win32_2dbghelp_2compat_8h_source.html#l00145
-https://www.aldeid.com/wiki/PE-Portable-executable
 
 More aid:
 https://tech-zealots.com/malware-analysis/pe-portable-executable-structure-malware-analysis-part-2/

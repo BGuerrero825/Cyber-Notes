@@ -178,7 +178,7 @@ Then, once the `LoadLibraryA` symbol is resolved we can load in any old arbitrar
 ### Working with the Export Names Array
 EDT contains relative addresses, but we can get the VMA using the DLL base address stored in EBX from the `find_kernel32:` section of our shellcode.
 
-> Structures: https://www.aldeid.com/wiki/PE-Portable-executable
+> Structures: https://www.aldeid.com/wiki/PE-Portable-executable [[Portable Executable (PE)]]
 > teb -> peb -> ldr chain -> module base
 > module base -> DOS Header -> PE Header -> Export Directory Table -> NumberOfNames, AddressOfNames 
 

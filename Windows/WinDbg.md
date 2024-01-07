@@ -139,4 +139,6 @@ r @$t0 # print register
 `!exchain` : extension to list the current thread exception handler chain
 narly : `.load narly` -> `!nmod` : lists all loaded modules and their memory protections (SafeSEH, GS, DEP, and ASL)
 `!address ADDRESS` : extension that shows in what section of memory a given address resides
-`!pcr` and `!prcb` : view the contents of the KPCR and KPRCB
+`!pcr` and `!prcb` : view the contents of the KPCR (Kernel Processor Control Region) and KPRCB (Kernel Processor Block)
+`!dh -a MODULE` : find data section of module and dump all header information
+`!vprot ADDRESS` : show protections at a particular address
