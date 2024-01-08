@@ -250,6 +250,11 @@ Make the API call with ROP
 	- buffer (from) address is not know yet
 	- 
 
+shellcode stuff
+
+test shellcode
+
+see execution of shellcode
 
 
 
@@ -259,8 +264,7 @@ Make the API call with ROP
 
 
 
-
-
+ 
 
 
 
