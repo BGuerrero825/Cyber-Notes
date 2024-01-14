@@ -154,7 +154,7 @@ LPVOID WINAPI VirtualAlloc(
  - flAllocationType takes a predefined enum and should be set to the MEM_COMMIT (0x00001000) in this case
  - flProtect should be set to PAGE_EXECUTE_READWRITE (0x00000040)
  
-1. Logically configure skeleton call on the stack
+1. Theoretical VirtualAlloc call structure
 	```
 	0d2be300 75f5ab90 -> KERNEL32!VirtualAllocStub
 	0d2be304 0d2be488 -> Return address (Shellcode on the stack)
@@ -163,7 +163,7 @@ LPVOID WINAPI VirtualAlloc(
 	0d2be310 00001000 -> flAllocationType
 	0d2be314 00000040 -> flProtect
 	```
-	- We don't know the values of VirtualAlloc or the shellcode yet, so we can use dummy values here
+	- But we don't know the values of VirtualAlloc or the shellcode yet, so we can use dummy values here
 	- The arguments to be pushed to VirtualAlloc contain null bytes and so also will have to dummy values that are filled in later
 1. Edit python script to input the above stack values
 	- `pattern += pack('<i', 0x41414141) # eip overflow, return to VirtualAlloc`
@@ -198,7 +198,7 @@ VirtualAlloc : function to allocate memory during runtime.
 	
 2. Get the stack address of the value we need to overwrite
 	1. `dd esi - 1c` to view pushed dummy values. The VirtualAlloc needs to go at the top dummy position at -0x1c
-	2. rp++: search for `sub esi, 0x1c ; retn` since esi contains our esp copy, but this doesnt exist. Instead, look to use the stack to push a value and then do step by step arithmetic from there to calculate the value in an arithmetic register (eax/ecx)
+	2. rp++: try to search for `sub esi, 0x1c ; retn` since esi contains our esp copy; an instruction this direct doesn't exist. Instead, look to use the stack to push a value and then do step by step arithmetic from there to calculate the value in an arithmetic register (eax/ecx)
 		- If the ROP chain includes extraneous pop's then we need to add dummy values to the stack
 	3. Add these gadget locations into the python script `rop += pack("<L", (ADDR))`
 	4. Step through the gadgets to confirm it worked. (eax/ecx should contain esp - 0x1c)
@@ -211,8 +211,8 @@ VirtualAlloc : function to allocate memory during runtime.
 	3. Edit script, and run to verify
 	4. Move the value in eax to the address pointed to by esi with a `mov dword [esi], eax`
 	5. Edit script and verify. Use `dds esi L1` and verify that it resolves to `KERNEL32!VirtualAllocStub`
-	- [[#ROP Chain 2 Spoiler]]
-	
+	- [[#ROP Chain 2 Spoiler]]	
+
 
 ### Pushing a Return Address
 The next value on the stack we need is a return address to our future shellcode after VirtualAlloc executes. This will be written to the 2nd position on the stack as per the skeleton layout.
@@ -222,10 +222,10 @@ The next value on the stack we need is a return address to our future shellcode 
 	2. Edit script and verify `dd esi L1` to ensure esi points to the next placeholder value.
 
 2. Overwrite the shellcode address on the stack with a (for now) fixed value
-	- We don't know our exact shellcode offset yet because we will allocate it at the end of our rop chain, of which we don't know the length of until we finish building it. For now, add a placeholder offset.
-	1. Ideal chain to find: `move eax, esi`, `pop ecx` (where static offset is then popped on stack), and `sub eax, ecx`. We simulate a shellcode address by calculating a static offset position from edi into eax. We can later change this offset when we get the actual address. 
+	- We don't know our exact shellcode offset yet because it needs to be placed at the end of our rop chain, of which we don't know the length of until we finish building it. For now, add a placeholder offset.
+	1. Ideal chain to find: `move eax, esi ; pop ecx` (where static offset is then popped on stack), and `sub eax, ecx`. We simulate a shellcode address by calculating a static offset position from edi into eax. We can later change this offset when we get the actual address. 
 	2. Find a `mov dword [esi], eax` to copy this value onto the stack
-	3. Edit script and verify `dd poi(esi) L4` to ensure stack location points to the specified offset at the end of this gadget.
+	3. Edit script, bp at last gadget and verify `dd poi(esi) L4` to ensure stack location points to the specified offset at the end of this gadget.
 
 
 ### Pushing Arguments
@@ -237,10 +237,10 @@ flProtect: 0x40
 1. Push (projected) shellcode address into lpAddress:
 	1. Reuse `inc esi` gadgets to increase esi (our makeshift stack pointer) by 4, to the new argument address
 	2. Move esi value into another register for arithmetic
-	- Remember we can push dummy values on the stack to negate extraneous pops
-	3. Subtract -0x20c (4 more than the -0x210 that the value pushed into the return address value 4 addresses up)
-	4. `mov dword ptr [esi], eax`
-	5. Test the gadget with `dd eax L4` at the end to confirm it points to our shellcode buffer string
+		- Remember we can push dummy values on the stack to negate extraneous pops
+	1. Subtract -0x20c (4 more than the -0x210 that the value pushed into the return address value 4 addresses up)
+	2. `mov dword ptr [esi], eax`
+	3. Test the gadget with `dd eax L4` at the end to confirm it points to our shellcode buffer string
 
 2. Push 0x00000001 into dwSize
 	1. Increment esi by 4
@@ -250,7 +250,7 @@ flProtect: 0x40
 3. Push 0x1000 into flAllocationType
 	1. Increment esi by 4
 	2. Avoid null bytes, creatively, since 0x1000 and its negation of 0xfffff000 both have null bytes
-		- Clue: `? 1000 - 60606060 = ...` `? 60606060 + ... = 1000` adding together two registers to get the needed value of 0x1000
+		- Clue: `? 1000 - 80808080 = XXXX` `?  80808080 + XXXX = 1000` adding together two registers to get the needed value of 0x1000
 	1. Test the gadget and ensure 0x00001000 got pushed
 
 4. Push 0x40 into flProtect
