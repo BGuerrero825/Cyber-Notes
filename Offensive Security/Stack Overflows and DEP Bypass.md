@@ -149,7 +149,7 @@ LPVOID WINAPI VirtualAlloc(
    _In_     DWORD  flProtect
  );
  ```
- - if lpAddress points to a committed memory page (already allocated) then flProtect will specify the new protections for that page. This is the same functionality of VirtualProtect
+ - if lpAddress points to a committed memory page (already allocated) then flProtect will specify the new protections for that page. This is the same functionality as VirtualProtect
  - dwSize specifies the memory region size, but VirtualAlloc can only change protections on one page per call, so ensure this value is less than 1 page (0x100 bytes)
  - flAllocationType takes a predefined enum and should be set to the MEM_COMMIT (0x00001000) in this case
  - flProtect should be set to PAGE_EXECUTE_READWRITE (0x00000040)
@@ -258,24 +258,30 @@ flProtect: 0x40
 	2. Repeat adding technique from last step OR try a negation on -0x40 OR a sub -0x40 from 0
 	3. Test the gadget and ensure 0x00000040 and all other arguments are pushed properly
 
+5. Final testing
+	1. Add an int3 instruction to the rop chain to force it to stop upon completion
+	2. Run Fastback in Windbg until int3
+	3. `dd esi - 20` shows the beginning of the VirtualAlloc skeleton, ensure these values are what is expected.
 ### Executing VirtualAlloc
 VirtualAlloc's address, the following return address to shellcode, and the arguments for VirtualAlloc have all been pushed. Finally, call VirtualAlloc itself, changing the protections of the projected shellcode address, and return to the start of a dummy shellcode buffer.
 
 1. Align esp to our stack address pointer to VirtualAlloc
 	- Gadgets that modify esp directly are rare, but we can find `mov esp, ebp ; pop ebp ; ret` everywhere. We need to modify ebp so we can use the previous instruction
-	1. esi still holds the address of our last push to flProtect, move and decrement this to get the VirtualAlloc address.
-	- Try adding a large value instead of adding a small value, since overflowed arithmetic will be dropped off the 32 bit register
-	2. Move eax value into ebp. ie. `xchg eax, ebp ; ret`
-	3. Use the `move esp, ebp ; ...` gadget from above and compensate for the `pop ebp` side effect
-	4. Test chain, first ensure that the eax arithmetic leads to the VirtualAlloc address, then continue to ensure this ends up being returned to after its written to esp
-	- `bp 0x... ".if @eax = 0x40 {} .else {gc}"` : use this to break on a frequently used rop gadget only when a condition is met, in this case, we break on the flProtect iteration by checking for its pushed value in eax.
+	1. esi still holds the address of the flProtect argument, move the value and decrement it to get the VirtualAlloc address.
+		- Try adding a large value instead of adding a small value, since overflowed arithmetic will be dropped off the 32 bit register
+	1. Move eax value into ebp. ie. `xchg eax, ebp ; ret`
+	2. Use the `move esp, ebp ; ...` gadget from above and compensate for the `pop ebp` side effect
+	3. Test chain, first ensure that the eax arithmetic leads to the VirtualAlloc address, then continue to ensure this ends up being returned to after its written to esp
+		- `bp 0x... ".if @eax = 0x40 {} .else {gc}"` : use this to break on a frequently used rop gadget only when a condition is met, in this case, we break on the flProtect iteration by checking for its pushed value in eax.
 
 2. Check memory protections of the shellcode address before/after VirtualAlloc call
+	1.  `!vprot 0x...` using shellcode address
 
-3. Align shellcode to offset used in ROP chain
+4. Align shellcode to offset used in ROP chain
 	- This can be done via changing the offset in the ROP chain or by adding padding to the input so that our shellcode will start at our projected position.
 	1. Calculate and add needed padding / or change coded offset
-	2. Test with dummy shellcode string
+		- It needs to be set for the skeleton's return address and for the lpAddress argument, both require a relative offset from their position on the stack
+	2. Test to ensure it returns at the start of the dummy shellcode instructions
 
 
 ### Getting a Reverse Shell

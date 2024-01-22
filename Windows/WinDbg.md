@@ -113,7 +113,8 @@ Ex.
 > When a PDB file is not available for a module, WinDbg will default to the export symbols mode, attempting to gather the names of symbols through the Export Directory Table.
 
 `lm m kernel*` : list all modules starting with string "kernel"
-`x kernelbase!CreateProc*` : examine symbol, starting with string*
+`x kernelbase!CreateProc*` : find (examine) symbol given string to search (with wildcards)
+	`x *!*recv*`
 
 ### Calculations
 `?` : evaluate expression

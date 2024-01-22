@@ -407,6 +407,9 @@ Logic Vulnerability - A features functionality exposes a security risk. Command 
 	1. We see a call to `sscanf` using psCommandBuffer as the source
 6. Search for memory corruption vulnerability in sscanf usage
 	- https://cplusplus.com/reference/cstdio/sscanf/
+		- 1st arg: source string address
+		- 2nd arg: format string (see implementation details)
+		- 3rd arg and after: destination addresses for parsed formatted strings
 	- sscanf's format string calls for a string `"File: %s ..."` which writes to the buffer in the 3rd argument position and reads from our first psCommandBuffer section
 	1. `dd esp L7` : to check 3rd pushed argument, the destination buffer
 	2. `!teb` : to check stack limits, ensuring the destination buffer is on the stack
