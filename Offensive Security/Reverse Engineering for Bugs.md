@@ -84,7 +84,7 @@ int recv(
   
 ### Synchronizing WinDbg and IDA Pro  
 Step out of the receive function from the socket library into its calling function which can be tracked in IDA 
-- Transfer Tivoli FastBackServer.exe to kali box, see [[notepad.exe transfer]]  
+- Transfer Tivoli FastBackServer.exe to kali box, see [[File Transfer Method]]
 When IDA prompts for location of imported DLLs, skip past this as they aren't needed for this analysis.  
   
 1. Step through the return of recv in WinDbg, `t` once (continuing from previous section).  

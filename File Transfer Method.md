@@ -1,3 +1,7 @@
+Easy way:
+`xfreerdp /cert:ignore /dynamic-resolution /drive:local,/home/kali +clipboard /v:192.168.234.40 /u:Administrator` : `/drive` argument is the important part
+
+Hard way:
 Transfer files from another machine on a network with python (on Windows) and nc (on Linux)
 1. On Windows Powershell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("path\to\file")) > file.txt` on desired file
 2. Linux: `nc -lvnp 8000 > file.txt`

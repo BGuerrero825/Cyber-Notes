@@ -24,12 +24,12 @@ proximity view is a more advanced feature for viewing and browsing the relations
 - Ctrl-M - go to bookmark
 
 ### Search Functionality
-- Alt-I - search immediate value, like a hardcoded DWORDs
+- Alt-I : search immediate value, like a hardcoded DWORDs
 - Alt-B : search byte sequences
 - Ctrl-P : open function jump window
 - Ctrl-F : filter functions
 - Ctrl-L : jump by name (global variables)
-On global var or function, (X) : to check cross-references (xrefs) in the program
+- (On global var or function) X : to check cross-references (xrefs) in the program
 
 # Static-Dynamic Analysis
 We can use IDA as control flow guide for WinDbg analysis. 
