@@ -125,7 +125,7 @@ Before diving into code block rabbit holes, we need to determine if a code block
 3. Back in `FX_AGENT_Receive+0x210` (the function which invokes `recv`) notice that the `mov eax, 1` instruction a few instructions down. eax is likely the return value of this function which is about to return.  
 4. Follow this return and see it drops us back in `FX_AGENT_CopyReceiveBuff`, also find this in IDA. The first check afterwards looks at the return value from the `FX_AGENT_Receive` function
 5. To avoid exploring every path manually, fall back on the previous hardware breakpoint set on the input buffer by continuing execution with `g`  
-6. It triggers at a static link memcopy: `FastBackServer!memcpy+0x130` which we cant trace back with the callstack `k` to `FastBackServer!FX_AGENT_CopyReceiveBuff+0xb4`, a location within the last function we were inspecting  
+6. It triggers at a static link memcopy: `FastBackServer!memcpy+0x130` which we can trace back with the callstack `k` to `FastBackServer!FX_AGENT_CopyReceiveBuff+0xb4`, a location within the last function we were inspecting  
 7. Since this is the return address of the call (pointing to the instruction after the call) and the call instruction is 5 bytes long, we can disassemble the call instruction with `u FastBackServer!FX_AGENT_CopyReceiveBuff+0xb4 -5 L1` to get the call address  
 8. We need rerun the dynamic analysis and then set a breakpoint here so we can inspect what the code is doing with the buffer  
   

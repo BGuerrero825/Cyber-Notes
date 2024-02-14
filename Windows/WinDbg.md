@@ -80,6 +80,7 @@ temporarily replaces the opcode location with an INT 3 instruction. We can set a
 `bu ole32!WriteStringStream`
 
 ### Breakpoint-Based Actions
+`bp ntdll!RtlRaiseException "r eax; dt MyVar; g"`: set breakpoint and execute listed commands (g at the end to keep running)
 `bp kernel32!WriteFile ".printf \"Bytes Written: %p\", poi(esp + 0x0C);.echo;g"` : print the number of bytes written when breakpoint is hit
 	`.echo` is needed to display output to WinDbg window
 	`g` resumes program after completion 
