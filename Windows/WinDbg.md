@@ -2,6 +2,8 @@ F6 - attach to process
 This will pause execution flow by overwriting the current instruction in memory with the INT 3 assembly instruction.
 `.hh` : manual && http://windbg.info/doc/1-common-cmds.html
 
+# TODO: Make sections for these
+**dds**, **dps**, and **dqs** commands display the contents of memory in the given range. This memory is assumed to be a series of addresses in the symbol table. The corresponding symbols are displayed as well.
 
 # Intro
 

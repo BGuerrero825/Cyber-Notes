@@ -103,18 +103,18 @@ je      tftpserver+0xe65a (0040e65a)
 4. Then a loop runs, copying from the byte of the initial input buffer on, into a string on the stack
 	1. Of which their memory regions conflict if the whole buffer is copied...
 ```
-int x = 2;
-if(buf_byte[x] != 0){
-	while(x < buf_size){}
-		append_string(buf_byte[x]);???
-		x++;
-		if(buf_byte[x] == 0){
+int i = 2;
+if(input_buf[i] != 0){
+	while(i < input_buf_size){}
+		copy_input_buf += (input_buf[i]);
+		i++;
+		if(input_buf[i] == 0){
 			break;
 		}
 	}
 }
 ```
-5. The loop runs for the whole length of the input buffer, but only the first 8? bytes were actually copied
+5. The loop runs for the whole length of the input buffer, but only the first 0x1a bytes were actually copied
 
 > Hmmmm I'm spending a lot of time reverse engineering and I don't really understand yet what the server is doing. Let's take a step back an do some OSINT!
 
@@ -127,4 +127,8 @@ if(buf_byte[x] != 0){
 	2. that seems pretty good...
 5. Googleing the CVE number, I get this: https://vulners.com/zdi/ZDI-19-1037 which gives pretty good details about the vuln
 	1. "The specific flaw exists within the handling of the val1 parameter provided to the tftpserver component. The issue results from the lack of proper validation of the length of user-supplied data prior to copying it to a fixed-length stack-based buffer."
-6. 
+
+
+(1e0c.3f8c): C++ EH exception - code e06d7363 (first chance)
+
+(23f0.2440): C++ EH exception - code e06d7363 (first chance)

@@ -197,6 +197,7 @@ ProcMon : Process Monitor
 
 In the previous DEP bypass VirtualAlloc was used to modify the protections of the stack where the shellcode lives. Here a new technique is used via WriteProcessMemory to copy our shellcode from the stack into an allocated module's code page. Specifically, copy the shellcode into `libeay32IBM019` which is already executable. Typically a code page is not writeable, but WriteProcessMemory will take care of this.
 
+https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory
 ### WriteProcessMemory
 ```
 BOOL WriteProcessMemory(

@@ -122,7 +122,7 @@ ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht), ctypes.int(-1))
 ```
 see https://docs.python.org/3/library/struct.html#format-characters for info on struct.pack
 
-https://bsodtutorials.wordpress.com/2021/06/14/windows-address-translation-deep-dive-part-1/ : article about segmentation and wtf the fs/gs segment registers are pointing to.
+>https://bsodtutorials.wordpress.com/2021/06/14/windows-address-translation-deep-dive-part-1/ : article about segmentation and what the fs/gs segment registers are pointing to.
 
 1. copy this to Windows machine, save as python file
 2. run it from cmd : `python SCRIPT.py`
@@ -134,7 +134,7 @@ https://bsodtutorials.wordpress.com/2021/06/14/windows-address-translation-deep-
 
 
 # Resolving Symbols
-At this point we can find `kernel32.dll` but we will crash the program due to not properly ending the process. We need to resolve APIs  functions exported by the module like `TerminateProcess` and, ideally before that, `GetProcAddress`. Rather than relying on the API, we can create our own "GetProcAddress" equivalent by traversing the Export Address Table (EAT) of a loaded DLL (which is pointed to by the Export Directory Table)
+At this point we can find `kernel32.dll` but we will crash the program due to not properly ending the process. We need to resolve APIs, functions exported by the module like `TerminateProcess` and, ideally before that, `GetProcAddress`. Rather than relying on the API, we can create our own "GetProcAddress" equivalent by traversing the Export Address Table (EAT) of a loaded DLL (which is pointed to by the Export Directory Table)
 
 > [[Portable Executable (PE)]] : see doxygen link for struct docs
 > symbols : function names and their starting memory addresses.
