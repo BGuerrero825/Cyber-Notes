@@ -10,15 +10,16 @@
 ---
 # ASLR Introduction
 
+Address Space Layout Randomization : Randomizes an exe or dll's loaded address each time the application starts.
+
 Compilers on Windows take a *preferred base* address parameter which sets a base memory addresses of an executable when loaded. 
+- `/REBASE`: compiler flag that allow DLLs to rebase to a different base address within a process if there is a conflict with another DLL.
+- `/DYNAMICBASE`: is "ASLR". Forces rebase behavior as a standard, all executables will have a randomized base address. Visual Studio now enables this by default but a lot of older IDE's don't.
 
-`/REBASE`: compiler flag that allow DLLs to rebase to a different base address within a process if there is a conflict with another DLL.
-
-`/DYNAMICBASE`: is "ASLR". Forces rebase behavior as a standard, all executables will have a randomized base address. Visual Studio now enables this by default but a lot of older IDE's don't.
-
-Native DLLs for the basic SYSTEM processes are loaded, randomized, and deconflicted at system boot but do not change until reboot.
+Native DLLs for the basic SYSTEM processes are loaded, randomized, and deconflicted at **system boot** but do not change until reboot.
 Any further DLLs needed by an exe are loaded, randomized, and deconflicted, but a previously loaded SYSTEM DLLs retain their initial base addresses.
 
+Limited Randomization:
 32-bit ASLR with standard entropy only randomizes 8 bits of an address
 STATIC      | RANDOM | STATIC 
 00000000 | 11111111 | 00000000 00000000
@@ -28,34 +29,33 @@ Entropy: the amount of bits randomized when a base address is chosen. Generally 
 ### ASLR Bypass Theory
 There are 4 primary ways to bypass ASLR protections.
 
-Modules Compiled without ASLR:
-- Check for the `/DYNAMICBASE` flag in other modules, shown as `*ASLR` in WinDbg narly
-
-Exploit Low Entropy:
-- Lower 16 bits of a module are not randomized, so a partial override into the lower bits of an ASLR module will still redirect reliably 
-- Limited to a gadget size of 1 which may work if module compiled without DEP
-
-Brute Force:
-- Realistic in 32-bit where only 8-bits of entropy are provided, app must not crash on invalid ROPs (or must auto-restart after crash)
-
-Information Leaks:
-- Leverages a feature (or another exploit) which gives information about a modules address space.
-- This is the most modern and practical methodology
+1. Modules Compiled without ASLR:
+	- Check for the `/DYNAMICBASE` flag in other modules, shown as `*ASLR` in WinDbg narly
+1. Exploit Low Entropy:
+	- Lower 16 bits of a module are not randomized, so a partial override into the lower bits of an ASLR module will still redirect reliably 
+	- Limited to a gadget size of 1, DEP cannot be enabled
+1. Brute Force:
+	- Realistic in 32-bit where only 8-bits of entropy are provided, app must not crash on invalid ROPs (or must auto-restart after crash)
+1. Information Leaks:
+	- Leverages a feature (or another exploit) which gives information about a modules address space.
+	- This is the most modern and practical methodology
 
 ### Windows Defender Exploit Guard
-See [[Stack Overflows and DEP Bypass#Windows Defender Exploit Guard (WDEG)]] enabling ASLR in addition to DEP
+WDEG: Add program to customize. Enable DEP and ALSR ("Force randomization for images")
+See [[Stack Overflows and DEP Bypass#Windows Defender Exploit Guard (WDEG)]] for enabling ASLR in addition to DEP
 
-Restart FastbackServer and reattach WinDbg, each time running `lm m csftpav6` to see the base address changing on each run 
+Restart FastbackServer and reattach WinDbg, each time running `lm m csftpav6` to see the base address changing on each run.
 
 
 ---
 # Finding Information Leaks
-Usually this process requires thorough reverse engineering of a programs code paths. 
-But we can lean on known Win32APIs info leaks if they are imported by the program.
-One example is `Dbghelp.dll` which resolve function addresses from symbol names.
+Usually this process requires thorough reverse engineering of a programs code paths. But we can lean on known functions from Win32 APIs with info leaks if they are imported by the program.
+
+A prime example is the `dbghelp.dll` API which resolve function addresses from symbol names.
+- Other examples: `CreateToolhelp32Snapshot`, `EnumProcessModules`, and C runtime APIs like `fopen`
 
 ### FXCLI_DebugDispatch
-Start an IDA session on FastBackServer.exe to investigate Win32 APIs.
+Start an IDA session on FastBackServer.exe and open the Imports tab to investigate Win32 APIs.
 One specifically interesting API found in the Imports tab is `SymGetSymFromName`, which is loaded from `dbghelp` and may cause an info leak, but we don't know how it's accessed yet.
 
 Reverse engineer `SymGetSymFromName` call stack:
@@ -63,100 +63,163 @@ Reverse engineer `SymGetSymFromName` call stack:
 2. Cross-reference the API name (click name and press x) 
 	- Both references come from `FXCLI_DebugDispatch`
 3. Click into and navigate `DebugDispatch` graph to the function declaration (top left) and cross reference again on the function name.
-	- This reference comes from `Exec_Command` which we know manages network input logic
+	- This reference comes from `..._OraBR_Exec_Command` which we have worked in before and know manages network input logic
 4. Click into the reference to see where the function is called from within `Exec_Command`
+5. Move up blocks to inspect the preceding branch conditions
+6. `var_61B30` (which ideally I would have renamed earlier) is compared many times, most recently against `2000h`, suggesting this is the opcode to access this branch
 
 Craft Input to reach `SymGetSymFromName` call:
-1. Move up basic blocks to find `cmp` instructions which steer code flow. 
-	- Only one block up is a comparison to the opcode offset of the input (with knowledge from previous reverse engineering) against 0x2000
-2. Update the python script with the new opcode
-3. Change the psCommandBuffer to send A's, B's, and C's for each of the 3 buffers (lengths specified in psAgentCommand as before)
-4. Static Dynamic Analysis with a `bp` at the opcode comparison instruction
-	- WinDbg cant randomize the base address so static values will work for breakpoints
-5. Run the program, stopping at the opcode check and confirming it works
-6. `pa` (step to address) on the call to `DebugDispatch` confirming it reached there
-7. `dd esp L3` to dump the arguments to this function
-	- The values are pointers, dumping the 2nd shows a list of A's meaning it points to the input network buffer
+1. Update the python script with the new opcode `0x2000`
+2. Change the psCommandBuffer to send A's, B's, and C's for each of the 3 buffers (lengths specified in psAgentCommand as before)
+3. Static Dynamic Analysis with a `bp` at the opcode comparison instruction
+	- WDEG cant randomize the base address of FastBackServer so static values will work for breakpoints
+4. Run the program, stopping at the opcode check and confirming it works
+5. `pa` (step to address) on the call to `DebugDispatch` confirming it reached there
+6. `dd esp L3` to dump the arguments to this function
+	- Some values are pointers, dumping the 2nd shows a list of A's meaning it points to the inputted network buffer
 
 ### Arbitrary Symbol Resolution
-step into debug dispatch to find path to the basic block we need
-lots of branching paths
-theres a repeating pattern in the leading blocks
-	a call to strbytelen (wraps strlen) and strnicmp (strcmp)
-the first block checks length and compares against "help"
-set a bp on strnicmp
-dd esp L3 the args
-2nd arg is "help"
-3rd arg (max size) is 4
-1st arg is pointer to buff of A's
-since the first 4 chars of the A's dont match "help", the function returns a non-z value and a branch is taken to a new cmp
-new cmp is the same but with "DumpMemoryPools"
-skipping to block just above we see the same cmp's but with "SymbolOperation"
-update POC with psCommandBuffer beginning with "SymbolOperation"
-- set new bp on the string compare call for the string above
-- breakpoint triggered
-- da poi(esp) shows our string whihc passes the check
-- bp on symgetsymfromname
-- The desired branch is taken, and the call is reached
-- PROTOYPE for SymGetSymFromName
-	- HANDLE  hProcess,
-	- PCSTR Name : pointer to symbol name to be resolved as a null terminated string
-	- IMAGEHLP_SYMBOL Symbol
+
+Stepping into DebugDispatch, I see lots of branches, signifying conditional checks on some input. There's also a repeating pattern in the leading blocks.
+A call to `_ml_strbytelen` (wraps `strlen`) and `_ml_strnicmp` (`strcmp`)
+
+`DebugDispatch`:
+1. the first block checks length and compares against "help", test this in the debugger
+	1. `bp` on strnicmp
+	2. `dd esp L3` the args
+	3. 2nd arg is "help"
+	4. 3rd arg (max size) is 4
+	5. 1st arg is pointer to buff of A's
+2. Since the first 4 chars of the B's buffer (psCommanderBuffer, buffer 1) don't match "help", the function returns a non-zero value and a branch is taken in the wrong direction.
+3. In the correct direction, the next comparison looks similar to the first but with "DumpMemoryPools"
+4. This continues until the desired block which checks against "SymbolOperation"
+5. update POC with psCommandBuffer buffer 1 beginning with "SymbolOperation" to match this check
+	- script edits
+```
+	# psCommandBuffer                      
+	sym_op = b'SymbolOperation'
+	buf += sym_op + bytearray([0x42]*(0x100 - len(sym_op))) # buffer 1
+	buf += bytearray([0x43]*0x100) # buffer 2
+	buf += bytearray([0x44]*0x100) # buffer 3
+```
+6. `bp` on SymbolOperation `_ml_strnicmp`, rerun script
+7. Check pushed arguments and ensure function returns with eax value of 0
+8. Execution continues to block containing `SymGetSymFromName`
+
+Barring any error from other calls in this block, `SymGetSymFromName` should be called. 
+To understand how to use the function, I look up the prototype for the function.
+
+PROTOYPE for `SymGetSymFromName`
+```
+BOOL IMAGEAPI SymGetSymFromName(
+	HANDLE  hProcess,
+	PCSTR Name,              # pointer to symbol name to be resolved as a null terminated string
+	IMAGEHLP_SYMBOL Symbol   # sub-struct
+);
+```
  - value of Name in the current POC is the string A's
- - Symbol is a pointer to a struct that is populated by the SymGetSym
+ - Symbol is a pointer to a struct that is allocated before the call, but populated by SymGetSym
+ 
+Structure for `IMAGEHLP_SYMBOL`
+```
+typedef struct _IMAGEHLP_SYMBOL {
+  DWORD SizeOfStruct;
+  DWORD Address;
+  DWORD Size;
+  DWORD Flags;
+  DWORD MaxNameLength;
+  CHAR  Name[1];
+} IMAGEHLP_SYMBOL, *PIMAGEHLP_SYMBOL;
+```
  - We specifically want to get the Address field of this populated struct
 	 - This gives the base address of the specified symbol Name
- - Update script to look for address of WriteProcessMemory, `buf += b'SymbolOperationWriteProcessMemory'`
- - bp at DebugDispatch call, run script
- - `da poi(esp+4)` shows WriteProcessMemory, our input
- - `dd esp+8 L1` -> `dds PREV+4 L1` shows 0000's where the returned address will go
- - `p` to step over the API call
-- `dds PREV+4 L1` shows address of WriteProcessMemory !!
-- Now we just need a way to retrieve this info over the network
+
+`SymGetSymFromName`:
+ 1. Update script to look for address of WriteProcessMemory 
+	 1. `sym_op = b'SymbolOperationWriteProcessMemory' + b'\x00'`
+	 2. Null byte is desired in this case, will end the rest of the input parsing
+ 2. `bp` at SymGetSym call, run script
+ 3. `da poi(esp+4)` shows WriteProcessMemory, our input
+ 4. `dd esp+8 L1` -> `dds PREV+4 L1` shows 0000's where the returned address will go
+ 5. `p` to step over the API call
+ 6. `dds PREV+4 L1` -> `u ADDR` shows address of WriteProcessMemory
+ 7. Now I just need a way to retrieve this info over the network
 
 ### Symbol Address Retrieval
-- It makes sense that this functionality is intended to return some info back to the user
-- Continue reversing to find a code path that returns the SymGetSym info
-- D: Inspect return val of SymGetSym as this affects the branch path
-- `pt` to see return logic
-- S: the next block performs a bunch of string manipulations
-- the output from the sprintf calls are stored at an offset from ebp
-- interested in the final string,
-- find value of arg_0 (which is the offset from ebp used) up in the function declaration
-- D: `dd ebp+8 L1` shows a pointer the string about to be manipulated
-- bp at the end of this function
-- `da PREV` shows the new content of the string pointer, which has the requested function address and other debug info
-- After this, we drop back into Exec_Command from DebugDispatch
-- there is cmp check for eax (return value of DebugDispatch) in which the jump is not taken (eax = 1)
-- S: next block is a mass converge of many conditionals, continue dynamic exec until this point (D: vs S: for dynamic vs static analysis)
-- D+S: We dont control the values in these checks, just follow the cmps and jumps and analyze whats happening
-- S: stop when seeing a call to GetConnectedIpPort
-- There are `lea` instructions just before the call, which usually signifies that a pointer to a previous call's return value is being loaded (and then being passed as an arg to this call)
-- D: bp at the call to IpPort
-- dump memory of the two addresses before the call `dd ebp-12550 L1` and `dd ebp-61bc L1`
-- `p` then dump memory after the call, see above step. They are now populated
-- What are these values and how do we interpret them? 
-- Guessing from the call function name `GetConnectedIpPort` we can assume some association to a socket connection, which usually uses win socket `connect`
-	- PROTOTYPE for WSAAPI connect
-	- theres a sockaddr substructure referred to by `*name` 
-	- PROTOTYPE for sockaddr_in
-	- sockaddr_in's ip address is an 'in_addr' struct and its port is an u_short (unsigned word)
-	- each octet of the IP address is a single byte of the (2nd) dword returned by GetConnectedIpPort
-- translate 0276a8c0 to IP with `? c0; ? a8; ? 76; ? 02;`
-- translate 000032cc to decimal `? 32cc`
-- open cmd as admin, run netstat -anbp tcp to see current tcp connections and find the above network connection
-- D+S: Following the flow we eventually see a block with a call to IF_Buffer_Send
-- bp on IF_Buffer_Send
-- dump contents of function arg with da poi(esp)
-- the debug string with WriteProcessMemory's address is the passed arg :)
-- Skip inspecting this function and modify script and see if we can catch this data
-- `response = s.recv(1024) // print(response)
-- Run the script and catch the address for WriteProcessMemory
-- Update script to parse for "Address is" and only print the address value, for easy passing into future script functionality, create case for null as well
-	- `def parse_response(response): ...`
-	- `response_address = parse_response(response) // print(str(hex(response_address)))`
-- And make sure that works
+It makes sense that this functionality is intended to return some info back to the user. I continue reversing to find a code path that returns the SymGetSym info.
 
+`DebugDispatch`:
+After returning from `SymGetSym`, there is a branch based on its return value leading to a block in which strings are printed (saved to a buffer) based on the info returned about the function
+1. Args are pushed and first `sprintf` call is made to print "Address is: ..."
+	1. the output from the sprintf call is stored at `arg_0` offset from ebp
+2. The above happens again for 2 more strings "Flags are:" and "Size is:"
+3. Use dynamic analysis to determine the value of `arg_0` (0x8 in this case)
+4. Progress to the end of the block and inspect the data stored at ebp+0x8
+	1. It should be a string with all the above printed statements
+5. The next branch is taken since eax wasn't returned as 0 from the `strcmp`
+6. The following basic blocks do a bunch of `strcmp`'s to what seems like file extensions
+7. Follow this function out to its return to `Exec_Command`
+
+`Exec_Command`:
+1. there is cmp check for eax (return value of DebugDispatch) in which the jump is not taken (eax = 1), likely because it returned without error
+2. The next conditional block is a mass converge of many conditional
+3.  The checks in the following blocks aren't on controllable variables, follow the cmps with static-dynamic analysis until something signifies an attempt to return info
+4. Stop at `GetConnectedIpPort`
+5. There are 2 `lea` instructions on stack values just before the call, then pushed as args
+	1.  `lea` is typically used in this context when the address being loaded is used as a return value location for the upcoming function call
+6. Stop exec at the call to `GetConnectedIpPort`
+7. dump memory of the two addresses before the call `dd ebp-12550 L1` and `dd ebp-61bc L1`
+	1. There's nothing, just 0's
+8. step over with`p` then dump memory after the call, seeing they are now populated
+	- Guessing from the call function name `GetConnectedIpPort`, assume some association to a socket connection standards which uses uses winsock's `connect`
+
+PROTOTYPE for WSAAPI connect:
+```
+int WSAAPI connect(
+  [in] SOCKET         s,
+  [in] const sockaddr *name,
+  [in] int            namelen
+);
+```
+
+PROTOTYPE for sockaddr_in:
+```
+struct sockaddr_in {
+        short   sin_family;
+        u_short sin_port;
+        struct  in_addr sin_addr;
+        char    sin_zero[8];
+};
+```
+- sockaddr_in's ip address is the `in_addr` struct, which stores each octet as a byte in a word
+- port is a u_short (unsigned word)
+
+`Exec_Command`:
+1. I expect the `GetConnectedIpPort` return values to be an address and port in the above format
+2. First value (anecdotally): `00006882`
+	1. Likely a port number
+	2. `? 8268` = 33384, value is stored as a big endian short
+3. Second value: `dc2da8c0`
+	1. IP address
+	2. `? each_byte` = 192.168.45.220
+4. Open cmd as admin, run `netstat -anbp tcp` to see current tcp connections, and confirm this is the current session connection
+5. Follow code flow until the call to `IF_Buffer_Send`
+7. Dump arguments and see that the pushed `pcFileBuffer` is a pointer to the previously crafted string containing the address of WriteProcessMemory
+8. Before inspecting the call, attempt to catch a response with the script using the current buffer input
+	1. `response = s.recv(1024) // print(response)
+10. Make updates to the script to parse out the raw address (for future usability), and create a catch case for null response
+	1. `response_address = parse_response(response) // print(str(hex(response_address)))`
+	
+```
+def parse_response(response):
+    pattern = b"Address is: "
+    offset = response.find(pattern)
+    if offset != -1:      
+        addr_start = offset + len(pattern) + 2
+        response = response[addr_start:addr_start+8]      
+        return response
+    return "Invalid input received"
+```
 
 --- 
 # Expanding the Exploit (ASLR Bypass)

@@ -2,19 +2,19 @@ shows existing communications
 
 `netstat`
 
-`netstat -lntu` : check all active connections? (check options)
+`netstat -tunlp` : check all listening connections
 
--a: 
+`-a` 
 "all" show all listening ports and established connections
--at/-au: 
+`-t`/`-u` 
 show only TCP or UDP protocols
--l: 
+`-l` 
 show ports in listening mode
--s: 
+`-s` 
 list network statistics by protocol
--p:
+`-p`
 list connections with service name and PID info
--i: 
+`-i`
 show interface statistics, (good info about network usage)
--ano: 
+`-ano` 
 (a) show all sockets, (n) don't resolve DNS, (o) display timers

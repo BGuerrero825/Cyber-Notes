@@ -2,7 +2,7 @@ https://www.youtube.com/watch?v=pgkAmgwIU_4 by Off By One Security
 
 Make a c Hello World program 
 `gcc -no-pie -o hello hello.c` : compile without PIE
-PIE : Position Independent Executable (ASLR on Linux)
+[[PIE (Position Independent Executable)]] : a program that is able to loaded at an arbitrary address at runtime
 `file hello` : show file info, particularly, that the file is "not stripped" (still has symbols attached)
 ### Find the main function of a disassembled binary
 1. `readelf -a hello | grep Entry` : find entry point of program 

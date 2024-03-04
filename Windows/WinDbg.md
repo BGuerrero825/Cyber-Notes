@@ -108,8 +108,9 @@ Ex.
 `t` : step into instruction (nest into a call)
 `pt` : step to next return (jump to end of function)
 `ph` : step to next branch
+`pa ADDR`: step until ADDR reached 
 
-### List Modules and Symbols
+ ### List Modules and Symbols
 `lm` : displays loaded modules
 `.reload /f` : force reload modules (module names wont display on a fresh instance of a process)
 

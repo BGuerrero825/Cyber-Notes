@@ -54,3 +54,18 @@ Tracing the code flow of notepad.exe opening a text file
 	- `bp READFILE_ADDR` -> `g` : continue to ReadFile call
 	- `dds esp L5` : find the address pushed to the stack as lpBuffer (pushed first, so 2nd one down)
 	- `p` : to step over ReadFile call -> `da LPBUFFER_ADDR` : to get file contents
+
+# Cross Reference (Xref) Types
+o - offset, the address of the item is taken
+r - read access
+w - write access
+t - textual referenced (used for manually specified operands)
+i - informational (e.g. a derived class refers to its base class)
+J - far (intersegment) jump
+j - near (intrasegment) jump
+P - far (intersegment) call
+p - near (intrasegment) call
+^ - ordinary flow
+s - xref from a structure
+m - xref from a structure member
+k - xref from a stack variable
