@@ -21,3 +21,4 @@ PE file = MS-DOS MZ header + stub program + PE file signature + PE file header +
 More aid:
 https://tech-zealots.com/malware-analysis/pe-portable-executable-structure-malware-analysis-part-2/
 https://upload.wikimedia.org/wikipedia/commons/1/1b/Portable_Executable_32_bit_Structure_in_SVG_fixed.svg
+![[Pasted image 20240305224614.png]]![[Pasted image 20240305224706.png]]

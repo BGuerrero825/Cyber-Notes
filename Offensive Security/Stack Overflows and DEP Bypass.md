@@ -131,6 +131,9 @@ Start the gadget finding process by finding suitable modules to pull gadgets fro
 `lm m FastBackServer`
 However, this is a problem because the module lies in null character address space, `00400000` - `00c0c000`, and so cannot be pointed to through our input buffer (0x00 is a bad character)
 
+>If we choose a module that is not part of the application, then the address of gadgets will vary depending on the patch level of the operating system.
+>Native Windows modules often have additional protections enabled, which will require an even more advanced approach, as we shall find in a future module.
+
 - The FastBackServer module cannot be used as it begins with a null-byte
 1. Find an alternative module loaded into the application
 	- `lm` turns up many suitable modules, one being: CSFTPAV6.dll
