@@ -29,6 +29,7 @@ add `L` and number to only print X amount of bytes
 `dd poi(REGISTER)` : get data from register pointer address
 `da ...` : display ASCII, 48 characters per line, stops at null byte or end of range
 `du ...` : display Unicode
+`dds`, `dps`, `dqs ...` : display memory as addresses in a symbol table. The corresponding symbols are displayed as well.
 
 ### Dump Structures from Memory
 structures can be hard to decipher once compiled to binary
@@ -110,10 +111,10 @@ Ex.
 `ph` : step to next branch
 `pa ADDR`: step until ADDR reached 
 
- ### List Modules and Symbols
+### List Modules and Symbols
 `lm` : displays loaded modules
 `.reload /f` : force reload modules (module names wont display on a fresh instance of a process)
-
+- `f` option to show filepaths
 > When a PDB file is not available for a module, WinDbg will default to the export symbols mode, attempting to gather the names of symbols through the Export Directory Table.
 
 `lm m kernel*` : list all modules starting with string "kernel"
@@ -146,4 +147,7 @@ narly : `.load narly` -> `!nmod` : lists all loaded modules and their memory pro
 `!address ADDRESS` : extension that shows in what section of memory a given address resides
 `!pcr` and `!prcb` : view the contents of the KPCR (Kernel Processor Control Region) and KPRCB (Kernel Processor Block)
 `!dh -a MODULE` : find data section of module and dump all header information
+- `.text` = code
+- `.rdata` = read only init data
+- `.data` = init data
 `!vprot ADDRESS` : show protections at a particular address
